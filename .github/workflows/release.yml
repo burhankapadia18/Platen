@@ -165,8 +165,13 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          # The layer cache only speeds up the NEXT release, so failing to save
+          # it must not fail this one. Without ignore-error, a transient
+          # "error writing layer blob: not_found" from the Actions cache service
+          # -- after the images were already pushed -- marked the job failed and
+          # skipped the smoke test and the GitHub release.
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
           provenance: false
 
   # ---------------------------------------------------------------------------
