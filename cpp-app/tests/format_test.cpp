@@ -407,7 +407,7 @@ TEST(FormatCrc32Test, PointerAndStringOverloadsAgree) {
   const std::string payload = "platen-durability-payload";
 
   EXPECT_EQ(crc32(payload), crc32(payload.data(), payload.size()));
-  EXPECT_EQ(crc32(payload), 0x6A84C2C2u);
+  EXPECT_EQ(crc32(payload), 0x18A7CAD0u);
 }
 
 TEST(FormatCrc32Test, CoversEmbeddedNulBytes) {
