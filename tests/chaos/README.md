@@ -4,7 +4,7 @@ Fault injection under continuous load, with invariant checking. Answers one
 question: **does an acknowledged write survive whatever happens next?**
 
 ```bash
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 docker compose up -d
 pip install -r tests/e2e/requirements.txt      # same deps: requests, pytest
 
@@ -79,7 +79,7 @@ landed.
 
 The cause is in `rpc.Server.Propose`. When a follower's forwarded proposal fails as
 a *transport* matter it reports `unavailable:` → 503, and the leader may already
-have committed the entry before the connection broke. So RaftKV's write is
+have committed the entry before the connection broke. So Platen's write is
 **at-least-once** under failure, and 503 means "retrying is safe", not "nothing
 happened". The README and `docs/architecture.md` now say so; they previously said
 "nothing was lost", which is true but reads as more than it means.

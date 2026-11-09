@@ -119,7 +119,7 @@ export function UsersPage({ authEnabled, onUnauthorized }: Props) {
         </h2>
         <p class="banner">
           <strong>Authentication is off.</strong> User management is closed
-          without <code>RAFTKV_ADMIN_PASSWORD</code>, because with no admin
+          without <code>PLATEN_ADMIN_PASSWORD</code>, because with no admin
           password there is no way to authenticate an administrator. Start the
           cluster with <code>docker-compose.auth.yml</code>.
         </p>

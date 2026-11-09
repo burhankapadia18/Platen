@@ -125,25 +125,25 @@ pytestmark = pytest.mark.requires_docker
 #: How many keys to write to push the cluster past the snapshot threshold. Must
 #: be comfortably above SNAPSHOT_THRESHOLD in docker-compose.test.yml (20) so
 #: that a snapshot is due and there is enough log left over to truncate.
-SNAPSHOT_KEY_COUNT = _env("RAFTKV_SNAPSHOT_KEYS", 60, cast=int)
+SNAPSHOT_KEY_COUNT = _env("PLATEN_SNAPSHOT_KEYS", 60, cast=int)
 
 #: Deadline for a snapshot plus a log truncation to show up on every node. Raft
 #: checks on a randomised 1x-2x SNAPSHOT_INTERVAL tick, so this is a bound on
 #: several checks, not on one.
-COMPACTION_TIMEOUT = _env("RAFTKV_COMPACTION_TIMEOUT", 120.0)
+COMPACTION_TIMEOUT = _env("PLATEN_COMPACTION_TIMEOUT", 120.0)
 
 #: Deadline for a wiped or restarted node to come back and serve every key:
 #: container start, C++ recovery, sidecar start, raft catch-up (a snapshot
 #: transfer for the wiped node), and the local apply of the tail.
-CATCHUP_TIMEOUT = _env("RAFTKV_CATCHUP_TIMEOUT", 180.0)
+CATCHUP_TIMEOUT = _env("PLATEN_CATCHUP_TIMEOUT", 180.0)
 
 #: Poll interval for plain HTTP reads against a node.
-READ_POLL_INTERVAL = _env("RAFTKV_POLL_INTERVAL", 0.1)
+READ_POLL_INTERVAL = _env("PLATEN_POLL_INTERVAL", 0.1)
 
 #: Extra applies tolerated on top of the expected tail when a node restarts:
 #: entries committed in the window between reading /status and the container
 #: actually going down, plus the no-op entry a leader appends per term.
-RESTART_TAIL_SLACK = _env("RAFTKV_RESTART_TAIL_SLACK", 8, cast=int)
+RESTART_TAIL_SLACK = _env("PLATEN_RESTART_TAIL_SLACK", 8, cast=int)
 
 
 # --------------------------------------------------------------------------
@@ -173,7 +173,7 @@ def services(compose_project: ComposeProject, cluster) -> dict[str, str]:
     ]
     if remote:
         pytest.skip(
-            f"RAFTKV_NODES points at non-local nodes ({', '.join(remote)}); these "
+            f"PLATEN_NODES points at non-local nodes ({', '.join(remote)}); these "
             "tests stop, wipe and restart containers of the local docker compose "
             "project, which is only meaningful when the nodes under test are it"
         )

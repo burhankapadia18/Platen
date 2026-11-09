@@ -1,7 +1,7 @@
 # Secure deployment profile (Phase 6).
 #
 #     ./scripts/gen-certs.sh
-#     export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+#     export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 #     docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 #
 # This is the deployment the README documents as supported. The base
@@ -22,7 +22,7 @@
 # What is still NOT protected, so nobody has to discover it the hard way:
 #   - Client authentication is a SEPARATE, opt-in overlay. This file gives you
 #     encryption, not identity: without docker-compose.auth.yml (and a
-#     RAFTKV_ADMIN_PASSWORD), anyone who can reach :8443 can read and write every
+#     PLATEN_ADMIN_PASSWORD), anyone who can reach :8443 can read and write every
 #     key. The bearer token guards cluster MEMBERSHIP, not data. Compose the two
 #     overlays together for a deployment that has both.
 #   - The proxy-to-node hop is plaintext (see deploy/caddy/Caddyfile).

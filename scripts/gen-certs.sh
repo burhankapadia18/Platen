@@ -58,7 +58,7 @@ else
     chmod 600 "$OUT_DIR/ca-key.pem"
     openssl req -x509 -new -key "$OUT_DIR/ca-key.pem" \
         -sha256 -days $((DAYS * 2)) \
-        -subj "/CN=raftkv-dev-ca" \
+        -subj "/CN=platen-dev-ca" \
         -addext "basicConstraints=critical,CA:TRUE" \
         -addext "keyUsage=critical,keyCertSign,cRLSign" \
         -out "$OUT_DIR/ca.pem" 2>/dev/null
@@ -118,7 +118,7 @@ Done. $OUT_DIR now contains:
   <node>-key.pem node private key  -> RAFT_TLS_KEY / MGMT_TLS_KEY
 
 Bring the secure cluster up with:
-  export RAFTKV_MGMT_TOKEN="\$(openssl rand -hex 32)"
+  export PLATEN_MGMT_TOKEN="\$(openssl rand -hex 32)"
   docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 
 Node keys are 0644 so the container's user can read them through the bind mount.

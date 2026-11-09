@@ -404,7 +404,7 @@ TEST(FormatCrc32Test, MatchesKnownIeeeVectors) {
 }
 
 TEST(FormatCrc32Test, PointerAndStringOverloadsAgree) {
-  const std::string payload = "raftkv-durability-payload";
+  const std::string payload = "platen-durability-payload";
 
   EXPECT_EQ(crc32(payload), crc32(payload.data(), payload.size()));
   EXPECT_EQ(crc32(payload), 0x6A84C2C2u);
@@ -430,7 +430,7 @@ TEST(FormatCrc32Test, ZeroLengthIsTheEmptyChecksumWhateverThePointer) {
 TEST(FormatCrc32Test, AnySingleBitFlipChangesTheChecksum) {
   // The whole point of the WAL checksum: a torn or bit-rotted record must not
   // hash to the value stored alongside it. CRC-32 detects every 1-bit error.
-  const std::string payload = "raftkv-durability-payload";
+  const std::string payload = "platen-durability-payload";
   const uint32_t baseline = crc32(payload);
 
   for (size_t index = 0; index < payload.size(); ++index) {

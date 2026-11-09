@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-RaftKV is a distributed key-value store using a **sidecar pattern**: each node runs two processes that talk to each other over localhost gRPC in both directions.
+Platen is a distributed key-value store using a **sidecar pattern**: each node runs two processes that talk to each other over localhost gRPC in both directions.
 
 - `cpp-app/` — C++17 storage engine: HTTP API, in-memory KV store with crash-safe persistence (write-ahead log + atomically rewritten binary base file), and a gRPC `StateMachine` server (binary: `kvdb_node`)
 - `go-sidecar/` — Go consensus sidecar wrapping HashiCorp Raft: leader election, log replication, cluster membership (Go module name: `my-raft-sidecar`)
@@ -14,11 +14,11 @@ RaftKV is a distributed key-value store using a **sidecar pattern**: each node r
 
 ```bash
 # Full cluster (the primary way to run and verify anything)
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 docker compose up -d                  # 3 nodes: HTTP on host ports 8080/8081/8082
-# `image:` is ${RAFTKV_IMAGE:-raftkv:latest}, so the default is the LOCAL build and
+# `image:` is ${PLATEN_IMAGE:-platen:latest}, so the default is the LOCAL build and
 # a published release needs no compose edit:
-#   RAFTKV_IMAGE=ghcr.io/burhankapadia18/raftkv:1.0.0 docker compose up -d
+#   PLATEN_IMAGE=ghcr.io/burhankapadia18/platen:<version> docker compose up -d
 docker compose logs -f
 docker compose down                   # add -v and rm -rf vol-node* for a clean slate
 
@@ -48,16 +48,16 @@ pytest tests/e2e -m requires_auth -v -rs     # client ACLs: needs the auth clust
 
 # Secure profile (Phase 6). Certs first, then layer the override on.
 ./scripts/gen-certs.sh                        # dev CA + node certs -> ./certs (gitignored)
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 curl --cacert certs/ca.pem https://localhost:6000/status
 curl --cacert certs/ca.pem -X PUT --data-binary v https://localhost:8443/kv/k
 
 # Client auth profile: Redis-style user ACLs on the client API. Off unless a
 # password is set, so this is an overlay like the secure profile.
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
-curl -u "admin:$RAFTKV_ADMIN_PASSWORD" http://localhost:8080/auth/whoami
+curl -u "admin:$PLATEN_ADMIN_PASSWORD" http://localhost:8080/auth/whoami
 
 # Chaos harness — needs a cluster up; drives docker itself (Phase 7)
 python tests/chaos/chaos.py --duration 600
@@ -86,7 +86,7 @@ There are three test layers, all of which must stay green:
 3. **End-to-end** (`tests/e2e/`, pytest) — asserts that a write on the leader is readable on **all three** nodes, DELETE round-trips, and the full HTTP status-code contract (404 on a miss, 503 naming the leader on a follower write, 415/400 on bad requests, and a regression test proving a malformed `Content-Length` no longer kills a node). Requires a live cluster; exits 1 with a "cluster does not look ready" message if there isn't one. These tests never start, stop or build anything with docker — the compose lifecycle belongs to CI and to the `cluster-smoke-test` skill.
    - `tests/e2e/test_security.py` (Phase 6) runs in the default suite: the request caps (413/431, plus a burst that proves the rejection path does not leak), and cluster-membership auth. Its load-bearing assertion is not a status code — it is that `last_log_index` does **not** move after a refused `/join`, because middleware that returned 403 *after* calling `AddVoter` would pass a status-code-only test and leave the cluster compromised.
    - `tests/e2e/test_secure_profile.py` (Phase 6) carries the `requires_secure` marker: it needs the cluster brought up with `docker-compose.secure.yml` and a CA in `./certs`, and skips otherwise. It checks the properties only a deployment has — plaintext refused on the raft port, a client certificate actually required there, HTTPS management, and that the plaintext client ports are **not** published (compose concatenates `ports` across files rather than replacing, so `!override` is required and was missed the first time).
-   - `tests/e2e/test_auth.py` carries the `requires_auth` marker: it needs the cluster brought up with `docker-compose.auth.yml` and the **same** `RAFTKV_ADMIN_PASSWORD` exported, and skips otherwise. Its headline assertion is that a user created through the leader becomes usable on **all three** nodes (polled, not slept) — a user record is a raft entry, so that is the only check covering propose -> replicate -> apply -> the follower's own authenticator reading it back. It also asserts what a status code alone would miss: that a refused privilege escalation created no user, and that a refused write left the old value in place. The auth-OFF rules that hold unconditionally live in `test_security.py` instead, so they run in the default suite.
+   - `tests/e2e/test_auth.py` carries the `requires_auth` marker: it needs the cluster brought up with `docker-compose.auth.yml` and the **same** `PLATEN_ADMIN_PASSWORD` exported, and skips otherwise. Its headline assertion is that a user created through the leader becomes usable on **all three** nodes (polled, not slept) — a user record is a raft entry, so that is the only check covering propose -> replicate -> apply -> the follower's own authenticator reading it back. It also asserts what a status code alone would miss: that a refused privilege escalation created no user, and that a refused write left the old value in place. The auth-OFF rules that hold unconditionally live in `test_security.py` instead, so they run in the default suite.
    - `tests/e2e/test_console.py` runs in the default suite. Its load-bearing assertion is that a key written on the leader appears in `GET /kv` on **all three** nodes (polled, not slept) — the only check covering propose -> replicate -> apply -> the follower's own ordered index reading it back; a unit test can only prove `scan_keys` walks a `std::set`. It also pins the embedded-asset contract (ETag/304, gzip negotiation, immutable hashed assets, a real 404 for an unknown path). The asset cases *skip* when the binary was built with `-DKVDB_CONSOLE=OFF`, whose 404 contract the C++ unit tests pin instead.
    - `tests/e2e/test_crash.py` is the deliberate exception (Phase 2): it SIGKILLs a follower, restarts it, and asserts the acknowledged writes were already on that node's disk *while it was dead* — the only way to tell durability from raft log replay, since restarts replay the whole log. It carries the `requires_docker` marker and is deselected by `addopts` so the default run stays docker-free; it *skips* (never fails) when docker, the compose project or a local cluster is unavailable.
 
@@ -95,7 +95,7 @@ There are three test layers, all of which must stay green:
 **Chaos and benchmarks** (Phase 7, both outside the three layers above):
 
 - `tests/chaos/` — fault injection under load with an invariant checker (acknowledged writes survive; replicas converge). Drives docker directly, which is the deliberate opposite of the e2e rule. Runs nightly, not per-PR. Its checker proves it can fail before every run, because a broken checker and a healthy cluster produce identical output. `pytest tests/chaos/test_journal.py` covers the journal fold with no cluster. See [tests/chaos/README.md](tests/chaos/README.md).
-- `bench/` — a **separate Go module** (`raftkv-bench`) with no third-party dependencies. Gated by its own `bench-build` CI job, because the `go` job is scoped to `go-sidecar` and would never compile it. Results in [docs/benchmarks.md](docs/benchmarks.md), labelled as laptop measurements with their ±25% run-to-run variance stated.
+- `bench/` — a **separate Go module** (`platen-bench`) with no third-party dependencies. Gated by its own `bench-build` CI job, because the `go` job is scoped to `go-sidecar` and would never compile it. Results in [docs/benchmarks.md](docs/benchmarks.md), labelled as laptop measurements with their ±25% run-to-run variance stated.
 
 **CI**: `.github/workflows/ci.yml` runs on every push to `main` and every PR, with independent jobs: `go` (blocking `gofmt -l`, `go vet`, `go test -race` + coverage summary, `gosec` pinned to v2.21.4 with `-exclude-dir=pb`), `cpp` (blocking `clang-format` check against `.clang-format`, cmake build with the project warning flags, `ctest`), `cpp-sanitizers` (ASan+UBSan), `cpp-tsan` (ThreadSanitizer — needs `--security-opt seccomp=unconfined`, or the build dies in `gtest_discover_tests` on a blocked `personality()` call), `fuzz` (both libFuzzer targets, 60s each, crash inputs uploaded), `e2e` (docker build, `docker compose -f docker-compose.yml -f docker-compose.test.yml up -d`, bounded readiness poll, `pytest tests/e2e`, then `-m requires_docker`), `e2e-auth` (the same cluster under `docker-compose.auth.yml` with a generated admin password, `-m requires_auth -rs`; its readiness poll probes `/metrics` rather than a data route, because with auth on an unauthenticated `/get-val` is a 401 forever and the poll would time out on a healthy cluster), `e2e-secure` (the same cluster under `docker-compose.secure.yml`, `-m requires_secure`, **plus a forced leader failover** — see below), and `bench-build`. Two more workflows exist: `chaos.yml` (nightly, not per-PR) and `release.yml` (on a `v*` tag: full suite → multi-arch buildx push to GHCR → smoke-test the *published* image → GitHub release, in that order, because publishing before verifying leaves a broken artifact people can pull).
 
@@ -216,7 +216,7 @@ Security is opt-in by configuration; the default compose profile is deliberately
 
 ### Client auth and user ACLs (`cpp-app/src/auth/`)
 
-Redis-style ACLs on the client HTTP API, enabled by `RAFTKV_ADMIN_PASSWORD` and off without it. Entirely C++: user records ride the existing `KVCommand` as two new ops, so the sidecar stays a byte pipe and **no Go code changed**. Six rules, each of which exists because getting it wrong is an auth bypass rather than a bug:
+Redis-style ACLs on the client HTTP API, enabled by `PLATEN_ADMIN_PASSWORD` and off without it. Entirely C++: user records ride the existing `KVCommand` as two new ops, so the sidecar stays a byte pipe and **no Go code changed**. Six rules, each of which exists because getting it wrong is an auth bypass rather than a bug:
 
 - **The reserved-prefix guard in `StateMachineService::Apply` is UNCONDITIONAL, and must stay so.** A plain SET/DELETE may never address `__sys:`; only `USER_SET`/`USER_DEL` write there. This is the only thing stopping the unauthenticated, peer-reachable port 50052 from granting itself an ACL, and gating it on `auth.enabled` would also make two replicas answer differently for the same committed entry — the exact divergence Apply must never produce.
 - **That guard must NOT move into `KVCommand::validation_error()`.** `PersistentKVStore::replay_wal_unlocked` calls `is_valid()` on every WAL record and **truncates the WAL at the first invalid one**, while the store re-encodes a committed user write as a plain `SET` of its `__sys:user:...` key. A prefix rejection there silently discards every write after the first user record on restart. `kv_command_test.cpp` pins this.
@@ -252,7 +252,7 @@ Phase 0 removed none of these — it **pinned** them with tests that assert the 
 - **Legacy routes do not URL-decode**: `/kv/{key}` percent-decodes its path, `/get-val?key=` and `/insert-val` do not, so the same logical key is addressed differently through the two surfaces. Deliberate — decoding the deprecated routes would silently move which key an existing client reaches. They go away a release after Phase 4.
 - **Response content negotiation is not implemented**: R4.6 asks for msgpack responses under `Accept: application/msgpack`; requests are flexible but responses are always JSON envelopes plus raw values for reads. The prerequisite is now done — the auth phase made `HttpRequestParser` populate `HttpRequest::headers` for real, so `Accept` is readable via `request.header("accept")`. What remains is the response side: every body is hand-built JSON (no JSON library is linked), so honoring `Accept` means a second encoder and a second set of contract rows.
 - **Validation happens after commit**: a command with an unknown op or an empty key is replicated first and rejected at apply time, costing a raft log entry and returning 502. Moving it to the propose boundary means the HTTP layer parsing the msgpack it currently forwards opaquely — an architectural change, not a small one.
-- **Client authentication is opt-in, so the default profile has none**: with `RAFTKV_ADMIN_PASSWORD` unset, anyone who can reach the client HTTP API can read and write every key. That is the deliberate default (a demo needing a credential is a demo nobody runs), and `docker-compose.auth.yml` is the documented way to turn it on. Do not make it default-on without changing every compose file, the e2e default suite and the chaos harness in the same commit.
+- **Client authentication is opt-in, so the default profile has none**: with `PLATEN_ADMIN_PASSWORD` unset, anyone who can reach the client HTTP API can read and write every key. That is the deliberate default (a demo needing a credential is a demo nobody runs), and `docker-compose.auth.yml` is the documented way to turn it on. Do not make it default-on without changing every compose file, the e2e default suite and the chaos harness in the same commit.
 - **Authorization is per-key-pattern only**: three independent command classes (`read`/`write`/`admin`) and glob patterns (`*`, `?` — no escapes, so a key containing `*` cannot be named exactly). No finer granularity than read/write, no quotas, no audit log.
 - **Passwords are salted SHA-256, not a memory-hard KDF**: fast by construction, so the store's bytes are worth brute-forcing offline. A real KDF means a real dependency (`cpp-app` links only gRPC/protobuf/msgpack, and `auth/sha256.hpp` is vendored precisely to keep that true). Treat `DATA_DIR` as secret.
 - **Auth decisions on a follower can be stale** by the replication delay, because the authenticator reads the local store. A revoked user may keep working on one node for that long. Bounded by replication, not unbounded.

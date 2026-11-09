@@ -187,13 +187,13 @@ public:
       std::chrono::steady_clock::time_point started;
       ~ApplyTimer() {
         metrics::Registry::global()
-            .histogram("raftkv_apply_duration_seconds",
+            .histogram("platen_apply_duration_seconds",
                        "Time to apply one committed entry to the local store.")
             .observe(std::chrono::duration<double>(
                          std::chrono::steady_clock::now() - started)
                          .count());
         metrics::Registry::global()
-            .counter("raftkv_apply_total", "Committed entries applied locally.")
+            .counter("platen_apply_total", "Committed entries applied locally.")
             .inc();
       }
     } timer{started};

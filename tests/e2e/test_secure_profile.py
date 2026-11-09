@@ -1,7 +1,7 @@
 """Phase 6 acceptance for the TLS deployment profile.
 
     ./scripts/gen-certs.sh
-    export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+    export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
     docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
     pytest tests/e2e -m requires_secure -v
 
@@ -74,9 +74,9 @@ def compose_network() -> str:
         capture_output=True, text=True, timeout=TIMEOUT, check=False,
     )
     for name in result.stdout.split():
-        if "raftkv" in name:
+        if "platen" in name:
             return name
-    pytest.skip("no raftkv docker network found")
+    pytest.skip("no platen docker network found")
 
 
 # ---------------------------------------------------------------------------

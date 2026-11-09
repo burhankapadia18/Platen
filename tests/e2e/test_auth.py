@@ -1,6 +1,6 @@
 """Acceptance for client authentication and Redis-style user ACLs.
 
-    export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+    export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
     docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
     pytest tests/e2e -m requires_auth -v -rs
 
@@ -83,7 +83,7 @@ POLL_INTERVAL = 0.2
 @pytest.fixture(scope="module")
 def admin_password() -> str:
     """The bootstrap admin password, which must match the running cluster's."""
-    password = os.environ.get("RAFTKV_ADMIN_PASSWORD", "").strip()
+    password = os.environ.get("PLATEN_ADMIN_PASSWORD", "").strip()
     if not password:
         # docker-compose.auth.yml interpolates this same fallback, so an
         # unexported variable still lines up with a default `up -d`.
@@ -115,7 +115,7 @@ def auth_cluster(nodes: list[str], admin_password: str) -> list[str]:
         )
         if whoami.status_code != HTTP_OK:
             pytest.skip(
-                f"RAFTKV_ADMIN_PASSWORD does not match the cluster at "
+                f"PLATEN_ADMIN_PASSWORD does not match the cluster at "
                 f"{base_url} (/auth/whoami returned {whoami.status_code}); "
                 "export the same value the cluster was started with."
             )
@@ -298,7 +298,7 @@ def test_metrics_stays_reachable_without_a_credential(auth_cluster):
     for base_url in auth_cluster:
         response = requests.get(f"{base_url}/metrics", timeout=TIMEOUT)
         assert response.status_code == HTTP_OK
-        assert "raftkv_http_requests_total" in response.text
+        assert "platen_http_requests_total" in response.text
 
 
 def test_a_rejected_credential_is_403_without_a_challenge(auth_cluster, admin):

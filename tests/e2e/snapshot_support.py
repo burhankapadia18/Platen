@@ -93,7 +93,7 @@ __all__ = [
 # --------------------------------------------------------------------------
 
 #: Compose files identifying the project under test, in ``-f`` order. Override
-#: with a comma-separated ``RAFTKV_COMPOSE_FILES``.
+#: with a comma-separated ``PLATEN_COMPOSE_FILES``.
 DEFAULT_COMPOSE_FILES = ("docker-compose.yml", "docker-compose.test.yml")
 
 #: Management API port inside the container (not published by docker-compose.yml).
@@ -109,13 +109,13 @@ SNAPSHOT_TMP_SUFFIX = ".tmp"
 
 #: Poll interval for status and log probes. One second, not the suite's 0.1s:
 #: each of these costs a `docker compose exec`, which is not free.
-DOCKER_POLL_INTERVAL = _env("RAFTKV_DOCKER_POLL_INTERVAL", 1.0)
+DOCKER_POLL_INTERVAL = _env("PLATEN_DOCKER_POLL_INTERVAL", 1.0)
 
 #: Ceilings above which a cluster counts as "not configured for these tests".
 #: Anything at or below them snapshots quickly enough to observe inside a test
 #: run; the production defaults (8192 / 10240) are far above and produce a skip.
-MAX_TEST_SNAPSHOT_THRESHOLD = _env("RAFTKV_MAX_SNAPSHOT_THRESHOLD", 512, cast=int)
-MAX_TEST_TRAILING_LOGS = _env("RAFTKV_MAX_TRAILING_LOGS", 512, cast=int)
+MAX_TEST_SNAPSHOT_THRESHOLD = _env("PLATEN_MAX_SNAPSHOT_THRESHOLD", 512, cast=int)
+MAX_TEST_TRAILING_LOGS = _env("PLATEN_MAX_TRAILING_LOGS", 512, cast=int)
 
 
 # --------------------------------------------------------------------------
@@ -159,11 +159,11 @@ CPP_SNAPSHOT_RESTORED = '"msg":"restored snapshot"'
 #: level, and because it resets with the process, the value read AFTER a restart
 #: is exactly "entries applied since this node came back" — which is the quantity
 #: the scenario is actually about.
-CPP_APPLY_COUNTER = "raftkv_apply_total"
+CPP_APPLY_COUNTER = "platen_apply_total"
 
 
 def read_apply_counter(base_url: str, timeout: float = 5.0) -> int:
-    """``raftkv_apply_total`` from a node's C++ /metrics endpoint.
+    """``platen_apply_total`` from a node's C++ /metrics endpoint.
 
     Returns 0 when the endpoint answers but does not carry the counter, which is
     what a node that has applied nothing since start looks like. A transport
@@ -297,8 +297,8 @@ def count_markers(logs: str, *markers: str) -> int:
 
 
 def compose_files() -> list[Path]:
-    """The compose files to drive, from ``RAFTKV_COMPOSE_FILES`` or the default."""
-    raw = os.environ.get("RAFTKV_COMPOSE_FILES", "").strip()
+    """The compose files to drive, from ``PLATEN_COMPOSE_FILES`` or the default."""
+    raw = os.environ.get("PLATEN_COMPOSE_FILES", "").strip()
     if raw:
         return [Path(part.strip()).expanduser() for part in raw.split(",") if part.strip()]
     return [REPO_ROOT / name for name in DEFAULT_COMPOSE_FILES]
@@ -330,7 +330,7 @@ def require_compose_project() -> ComposeProject:
     missing = [str(path) for path in files if not path.is_file()]
     if missing:
         pytest.skip(
-            f"compose file(s) not found: {missing}. Set RAFTKV_COMPOSE_FILES to the "
+            f"compose file(s) not found: {missing}. Set PLATEN_COMPOSE_FILES to the "
             "comma-separated list the running cluster was started with."
         )
 

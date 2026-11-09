@@ -41,7 +41,7 @@ itself from assets embedded in the binary. No extra process, port or container.
 **Client authentication and user ACLs** — Redis-style, opt-in, and off unless a
 bootstrap admin password is configured.
 
-- `RAFTKV_ADMIN_PASSWORD` enables authentication on the client HTTP API. Setting
+- `PLATEN_ADMIN_PASSWORD` enables authentication on the client HTTP API. Setting
   the password *is* the switch — there is no separate enable flag that could
   disagree with it. Unset means the API behaves exactly as it did before.
   `docker-compose.auth.yml` is the documented overlay, alongside
@@ -57,7 +57,7 @@ bootstrap admin password is configured.
   prefix, written through two new commands (`USER_SET`, `USER_DEL`), so the WAL,
   snapshots, compaction and node joins carry them with no new machinery and the Go
   sidecar was not touched.
-- `401` (no usable credential, with `WWW-Authenticate: Basic realm="raftkv"`) and
+- `401` (no usable credential, with `WWW-Authenticate: Basic realm="platen"`) and
   `403` (rejected or insufficient) are now distinct. Unknown user, disabled user
   and wrong password produce the *same* 403, so the endpoint cannot enumerate
   accounts.
@@ -248,5 +248,5 @@ Three assertions were found to be **incapable of failing** and were repaired:
   are now reclaimed once no in-flight write can still commit, raising coverage to
   ~300 keys per run.
 
-[Unreleased]: https://github.com/burhankapadia18/RaftKV/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/burhankapadia18/RaftKV/releases/tag/v1.0.0
+[Unreleased]: https://github.com/burhankapadia18/Platen/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/burhankapadia18/Platen/releases/tag/v1.0.0

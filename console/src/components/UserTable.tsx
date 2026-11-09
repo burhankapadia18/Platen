@@ -13,7 +13,7 @@ export function UserTable({ names, onSelect, onDelete }: Props) {
         <Motif />
         <p>
           No users yet. The bootstrap administrator comes from{' '}
-          <code>RAFTKV_ADMIN_PASSWORD</code> and is not a record, so it is not
+          <code>PLATEN_ADMIN_PASSWORD</code> and is not a record, so it is not
           listed here and cannot be edited.
         </p>
       </div>

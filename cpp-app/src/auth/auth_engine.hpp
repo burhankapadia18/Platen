@@ -31,7 +31,7 @@ inline constexpr const char *kBasicScheme = "basic";
 /**
  * @brief The bootstrap admin's name.
  *
- * A VIRTUAL user: it exists whenever RAFTKV_ADMIN_PASSWORD is set and is
+ * A VIRTUAL user: it exists whenever PLATEN_ADMIN_PASSWORD is set and is
  * checked before the store is consulted. That ordering is the point — it
  * removes a bootstrap race that would otherwise have no good answer. A cluster
  * whose first admin had to be created through Raft could not create it, because

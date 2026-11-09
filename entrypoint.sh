@@ -141,9 +141,9 @@ fi
 # The cluster-admin token (R6.1) is passed via the ENVIRONMENT, never as a flag.
 # `-mgmt-token <secret>` would put it in the process's command line, where any
 # local user can read it out of `ps`. internal/config already defaults the flag
-# from RAFTKV_MGMT_TOKEN, so simply not passing it is what keeps it out of argv.
-if [ -z "$RAFTKV_MGMT_TOKEN" ]; then
-    echo "WARNING: RAFTKV_MGMT_TOKEN is not set; /join and /remove are DISABLED" >&2
+# from PLATEN_MGMT_TOKEN, so simply not passing it is what keeps it out of argv.
+if [ -z "$PLATEN_MGMT_TOKEN" ]; then
+    echo "WARNING: PLATEN_MGMT_TOKEN is not set; /join and /remove are DISABLED" >&2
     echo "         on this node. A node cannot join a cluster without it." >&2
 fi
 

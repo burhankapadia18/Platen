@@ -201,7 +201,7 @@ def check_all(
 
 
 def check_key_counts(cluster: Cluster) -> str:
-    """A one-line report of each node's raftkv_store_keys gauge.
+    """A one-line report of each node's platen_store_keys gauge.
 
     Informational, not an assertion. The nodes are expected to agree, but the
     gauge counts the whole store — including keys written by earlier test runs

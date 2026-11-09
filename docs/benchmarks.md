@@ -17,8 +17,8 @@ in rather than the results.
 ## Method
 
 ```bash
-docker build -t raftkv:latest .
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+docker build -t platen:latest .
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose up -d                       # 3-node; `up -d node1` for 1-node
 
 cd bench

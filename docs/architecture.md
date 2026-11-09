@@ -1,4 +1,4 @@
-# RaftKV architecture
+# Platen architecture
 
 The design as it stands at v1.0, including the parts that are compromises. If you
 are looking for how to run it, start with the [README](../README.md); this
@@ -193,7 +193,7 @@ suite has to drive them far below production values to observe a snapshot at all
 One node bootstraps (`BOOTSTRAP=true`); the others retry-join through the
 management API. `/join` and `/remove` are leader-only raft operations, but may be
 sent to **any** node: a follower relays to the leader, marking the request with
-`X-RaftKV-Forwarded` so it can be relayed at most once. Two nodes each believing
+`X-Platen-Forwarded` so it can be relayed at most once. Two nodes each believing
 the other leads would otherwise bounce a join between themselves until something
 timed out.
 
@@ -255,7 +255,7 @@ a CA before it prints anything is a demo nobody runs — and
 
 | Surface | Default | Secure profile |
 |---|---|---|
-| Client HTTP API | Plaintext; unauthenticated unless `RAFTKV_ADMIN_PASSWORD` is set | HTTPS via a reverse proxy; authentication is a separate overlay (`docker-compose.auth.yml`) |
+| Client HTTP API | Plaintext; unauthenticated unless `PLATEN_ADMIN_PASSWORD` is set | HTTPS via a reverse proxy; authentication is a separate overlay (`docker-compose.auth.yml`) |
 | Management API | HTTP; `/join`+`/remove` behind a bearer token | HTTPS + bearer token |
 | Raft peer transport | Plaintext — anyone who can reach it can append entries | Mutual TLS against one cluster CA |
 | C++ StateMachine gRPC | Plaintext on `127.0.0.1` | Same |
@@ -320,7 +320,7 @@ Stated here rather than left to be discovered:
 - **The whole dataset lives in memory,** and a snapshot holds a second copy while
   it is being written. Dataset size is bounded by RAM.
 - **Client authentication is opt-in, and off by default.** With no
-  `RAFTKV_ADMIN_PASSWORD`, anyone who can reach the API can read and write
+  `PLATEN_ADMIN_PASSWORD`, anyone who can reach the API can read and write
   everything. With one, users get command classes and glob key patterns — but
   passwords are salted SHA-256 rather than a memory-hard KDF, there is no user
   listing, and a follower's authorization view can lag the leader by the

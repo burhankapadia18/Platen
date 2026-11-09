@@ -1620,7 +1620,7 @@ Expected: PASS, every package.
 - [ ] **Step 10: Commit**
 
 ```bash
-cd /Users/burhankapdawala/Documents/mine/p-repos/RaftKV
+cd /Users/burhankapdawala/Documents/mine/p-repos/Platen
 git add proto/consensus.proto go-sidecar/pb go-sidecar/internal/raftnode/node.go \
   go-sidecar/internal/rpc/server.go go-sidecar/internal/rpc/server_test.go \
   go-sidecar/cmd/sidecar/main.go
@@ -2181,7 +2181,7 @@ TEST_F(HandlerTest, UsersListIsClosedWhenAuthIsDisabled) {
   // there is no way to authenticate an administrator.
   const HttpResponse response = get("/auth/users");
   EXPECT_EQ(response.status_code, 403);
-  EXPECT_NE(response.body.find("RAFTKV_ADMIN_PASSWORD"), std::string::npos);
+  EXPECT_NE(response.body.find("PLATEN_ADMIN_PASSWORD"), std::string::npos);
 }
 ```
 
@@ -3196,7 +3196,7 @@ embed and the default can flip to ON. The three pages arrive in Tasks 10–12.
 
 ```json
 {
-  "name": "raftkv-console",
+  "name": "platen-console",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -3290,7 +3290,7 @@ export default defineConfig({
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RaftKV Console</title>
+    <title>Platen Console</title>
   </head>
   <body>
     <div id="root"></div>
@@ -3561,7 +3561,7 @@ export function App() {
   return (
     <div class="app-shell">
       <header class="app-header">
-        <h1 class="app-title">RaftKV Console</h1>
+        <h1 class="app-title">Platen Console</h1>
       </header>
       <p class="banner">
         <strong>Scaffold.</strong> Pages arrive in the next tasks.
@@ -3615,7 +3615,7 @@ Update the comment above it:
 ```
 
 ```bash
-cd /Users/burhankapdawala/Documents/mine/p-repos/RaftKV
+cd /Users/burhankapdawala/Documents/mine/p-repos/Platen
 cmake -S cpp-app -B cpp-app/build -DKVDB_BUILD_TESTS=ON
 cmake --build cpp-app/build -j4
 ```
@@ -3689,7 +3689,7 @@ console/dist/
 - [ ] **Step 11: Verify the whole image builds and the console is served**
 
 ```bash
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 docker compose up -d
 curl -si http://localhost:8080/ | head -3
 curl -s http://localhost:8080/console/ | head -3
@@ -3779,7 +3779,7 @@ CI job tests."
 // sessionStorage rather than localStorage: it dies with the tab, so a shared
 // machine does not keep an admin credential around after the operator leaves.
 
-const STORAGE_KEY = 'raftkv.console.credential';
+const STORAGE_KEY = 'platen.console.credential';
 
 /** @returns The stored `user:password` base64, or null. */
 export function loadCredential(): string | null {
@@ -4155,7 +4155,7 @@ export function AuthBanner() {
       <strong>Unauthenticated.</strong> This node has no client authentication:
       anyone who can reach it can read and write every key. Enable ACLs with{' '}
       <code>docker-compose.auth.yml</code> and{' '}
-      <code>RAFTKV_ADMIN_PASSWORD</code>.
+      <code>PLATEN_ADMIN_PASSWORD</code>.
     </p>
   );
 }
@@ -4819,7 +4819,7 @@ export function App() {
   return (
     <div class="app-shell">
       <header class="app-header">
-        <h1 class="app-title">RaftKV</h1>
+        <h1 class="app-title">Platen</h1>
         <nav class="app-nav" aria-label="Console sections">
           {ROUTES.map((entry) => (
             <a
@@ -4861,7 +4861,7 @@ export function App() {
 
 ```bash
 cd console && npm run build
-cd .. && docker build -t raftkv:latest . && docker compose up -d
+cd .. && docker build -t platen:latest . && docker compose up -d
 ```
 
 Open `http://localhost:8080/` — it must redirect to `/console/`, show the node
@@ -4873,9 +4873,9 @@ Then verify the authenticated path:
 
 ```bash
 docker compose down
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
-echo "admin password: $RAFTKV_ADMIN_PASSWORD"
+echo "admin password: $PLATEN_ADMIN_PASSWORD"
 ```
 
 Reload `/console/` — the page must load (assets are outside the auth gate),
@@ -5393,7 +5393,7 @@ import { KeysPage } from './pages/KeysPage';
 
 ```bash
 cd console && npm run build
-cd .. && docker build -t raftkv:latest . && docker compose up -d
+cd .. && docker build -t platen:latest . && docker compose up -d
 curl -X PUT --data-binary 'hello' http://localhost:8080/kv/app:greeting
 curl -X PUT --data-binary 'world' http://localhost:8080/kv/app:other
 curl -X PUT --data-binary 'x' http://localhost:8080/kv/zz
@@ -5455,7 +5455,7 @@ export function UserTable({ names, onSelect, onDelete }: Props) {
     return (
       <p class="page-note">
         No users yet. The bootstrap administrator comes from{' '}
-        <code>RAFTKV_ADMIN_PASSWORD</code> and is not a record, so it is not
+        <code>PLATEN_ADMIN_PASSWORD</code> and is not a record, so it is not
         listed here and cannot be edited.
       </p>
     );
@@ -5748,7 +5748,7 @@ export function UsersPage({ authEnabled, onUnauthorized }: Props) {
         </h2>
         <p class="banner">
           <strong>Authentication is off.</strong> User management is closed
-          without <code>RAFTKV_ADMIN_PASSWORD</code>, because with no admin
+          without <code>PLATEN_ADMIN_PASSWORD</code>, because with no admin
           password there is no way to authenticate an administrator. Start the
           cluster with <code>docker-compose.auth.yml</code>.
         </p>
@@ -5864,10 +5864,10 @@ import { UsersPage } from './pages/UsersPage';
 
 ```bash
 cd console && npm run build && cd ..
-docker build -t raftkv:latest .
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+docker build -t platen:latest .
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
-echo "admin password: $RAFTKV_ADMIN_PASSWORD"
+echo "admin password: $PLATEN_ADMIN_PASSWORD"
 ```
 
 At `#/users`, signed in as `admin`: create `alice` with `read` and `app:*`;
@@ -6321,14 +6321,14 @@ module the way the existing tests do and drop them from the signatures.
 - [ ] **Step 3: Run to verify it fails**
 
 ```bash
-docker build -t raftkv:latest . && docker compose up -d
+docker build -t platen:latest . && docker compose up -d
 # Wait for readiness the way the CI job does, then:
 pytest tests/e2e/test_console.py -v
 ```
 
 Expected: FAIL — before Tasks 3/5/6/8 land these 404; run this task *after* them
 and it should pass. If it passes on the first run, confirm you are testing a
-freshly built image rather than a stale `raftkv:latest`.
+freshly built image rather than a stale `platen:latest`.
 
 - [ ] **Step 4: Add the auth-profile cases**
 
@@ -6493,13 +6493,13 @@ path; the names above are placeholders for whatever it already calls them.
 pytest tests/e2e -v
 docker compose down
 
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
 pytest tests/e2e -m requires_auth -v -rs
 docker compose -f docker-compose.yml -f docker-compose.auth.yml down
 
 ./scripts/gen-certs.sh
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 pytest tests/e2e -m requires_secure -v -rs
 docker compose -f docker-compose.yml -f docker-compose.secure.yml down
@@ -6646,7 +6646,7 @@ GET /auth/users
 
 Requires the `admin` class; `403` when authentication is disabled, like the rest
 of `/auth/*`. Returns `{"users":["alice","bob"]}` — **names only**, never a salt
-or a password hash. The bootstrap administrator from `RAFTKV_ADMIN_PASSWORD` is
+or a password hash. The bootstrap administrator from `PLATEN_ADMIN_PASSWORD` is
 not a record and is not listed.
 ````
 
@@ -6793,7 +6793,7 @@ code and body in the three new README sections, then confirm the `contracts.py`
 constants match what the engine actually emits:
 
 ```bash
-docker build -t raftkv:latest . && docker compose up -d
+docker build -t platen:latest . && docker compose up -d
 curl -si 'http://localhost:8080/kv?limit=0' | head -1
 curl -s  'http://localhost:8080/kv?limit=0'
 curl -si 'http://localhost:8080/kv?prefix=__sys%3A' | head -1

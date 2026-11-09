@@ -7,6 +7,6 @@
 //
 // It deliberately has no third-party dependencies at all — net/http and the
 // standard library are enough — so `go build ./...` here needs no network.
-module raftkv-bench
+module platen-bench
 
 go 1.24

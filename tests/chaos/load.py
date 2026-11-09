@@ -31,7 +31,7 @@ reported the store holding `v7-2629` where the journal's last acknowledged value
 was `v7-2614`: fifteen later writes had been answered 503 and one of them had
 landed anyway. The cause is in rpc.Server.Propose: when forwarding to the leader
 fails as a TRANSPORT matter, the follower reports `unavailable:` → 503, and the
-leader may already have committed the entry. So RaftKV's write is at-least-once
+leader may already have committed the entry. So Platen's write is at-least-once
 under failure, and 503 means "retry is safe", not "nothing happened".
 """
 

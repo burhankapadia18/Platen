@@ -137,7 +137,7 @@ inline constexpr const char *kConsistencyLinearizable = "linearizable";
  * is a user name and password, and the management API's bearer token is a
  * different thing guarding a different surface.
  */
-inline constexpr const char *kBasicChallenge = "Basic realm=\"raftkv\"";
+inline constexpr const char *kBasicChallenge = "Basic realm=\"platen\"";
 
 /**
  * @brief HTTP response builder utility.
@@ -305,12 +305,12 @@ public:
                                std::chrono::steady_clock::now() - started)
                                .count();
     metrics::Registry::global()
-        .histogram("raftkv_http_request_duration_seconds",
+        .histogram("platen_http_request_duration_seconds",
                    "Time to serve one HTTP request.", {{"route", route}})
         .observe(elapsed);
     metrics::Registry::global()
         .counter(
-            "raftkv_http_requests_total",
+            "platen_http_requests_total",
             "HTTP requests served, by route and status class.",
             {{"route", route}, {"status", status_class(response.status_code)}})
         .inc();
@@ -1222,7 +1222,7 @@ private:
               const auth::AuthContext &identity) const {
     if (!auth_.enabled()) {
       return HttpResponse::json_error(
-          403, "user management is disabled; set RAFTKV_ADMIN_PASSWORD to "
+          403, "user management is disabled; set PLATEN_ADMIN_PASSWORD to "
                "enable authentication");
     }
 
@@ -1266,7 +1266,7 @@ private:
     if (*name == auth::kBootstrapAdminName) {
       return HttpResponse::json_error(
           400, std::string("\"") + auth::kBootstrapAdminName +
-                   "\" is defined by RAFTKV_ADMIN_PASSWORD and cannot be "
+                   "\" is defined by PLATEN_ADMIN_PASSWORD and cannot be "
                    "managed through this API");
     }
 

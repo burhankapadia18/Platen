@@ -56,10 +56,10 @@ var expectedFlags = []struct {
 	// debug on through this flag or the LOG_LEVEL env var entrypoint.sh forwards.
 	{name: "log-level", defValue: "info", usage: "Log threshold: debug|info|warn|error"},
 	// R6.1: the cluster-admin token. Its DEFAULT is deliberately not pinned here
-	// — it comes from RAFTKV_MGMT_TOKEN, so a fixed expectation would fail on any
+	// — it comes from PLATEN_MGMT_TOKEN, so a fixed expectation would fail on any
 	// machine that happens to have the variable set, including a real deployment.
 	// The name and usage are the contract; the value is environment.
-	{name: "mgmt-token", defValue: anyValue, usage: "Cluster-admin bearer token for /join and /remove (prefer RAFTKV_MGMT_TOKEN)"},
+	{name: "mgmt-token", defValue: anyValue, usage: "Cluster-admin bearer token for /join and /remove (prefer PLATEN_MGMT_TOKEN)"},
 	// R6.3/R6.4. All six default to empty: security is opt-in, so a node started
 	// without them behaves exactly as it did before Phase 6.
 	{name: "raft-tls-cert", defValue: "", usage: "Certificate this node presents to raft peers (enables mutual TLS on the raft port)"},

@@ -1,4 +1,4 @@
-# RaftKV Testing Rules
+# Platen Testing Rules
 
 ## Current state
 
@@ -41,7 +41,7 @@ lifecycle belongs to the CI `e2e` job and to the
 [`cluster-smoke-test`](../skills/cluster-smoke-test/SKILL.md) skill.
 
 ```bash
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 docker compose up -d
 pip install -r tests/e2e/requirements.txt
 pytest tests/e2e -v

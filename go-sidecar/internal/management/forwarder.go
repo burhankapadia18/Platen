@@ -19,7 +19,7 @@ import (
 // out. A request carrying this header is answered by whichever node received
 // it — with a truthful "not the leader" if that is the case — never relayed
 // again.
-const ForwardedHeader = "X-RaftKV-Forwarded"
+const ForwardedHeader = "X-Platen-Forwarded"
 
 // maxForwardedBody caps how much of a peer's response we read back.
 //

@@ -56,7 +56,7 @@ jobs:
         run: pytest tests/chaos/test_journal.py -v
 
       - name: Build image
-        run: docker build -t raftkv:latest .
+        run: docker build -t platen:latest .
 
       - name: Start cluster
         run: |
@@ -67,8 +67,8 @@ jobs:
           # Phase 6 secure-cluster step.
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
-          echo "RAFTKV_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
-          export RAFTKV_MGMT_TOKEN="$token"
+          echo "PLATEN_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
+          export PLATEN_MGMT_TOKEN="$token"
           docker compose up -d
 
       - name: Wait for cluster readiness

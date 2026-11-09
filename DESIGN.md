@@ -1,4 +1,4 @@
-# DESIGN.md — the RaftKV console's visual language
+# DESIGN.md — the Platen console's visual language
 
 Source of the language: a screenshot of the Passionfroot marketing site,
 supplied as `design.webp` and **deliberately not checked in** — it is someone

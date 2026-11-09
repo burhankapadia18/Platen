@@ -174,18 +174,18 @@ TEST(AuthEngineTest, FromEnvLeavesAuthOffWhenThePasswordIsUnset) {
   // AuthOptions::from_env reads the process environment; the assertion that
   // matters is that "absent" and "empty" both mean OFF, and neither means
   // "enabled with an empty password" — which would accept `admin:`.
-  ::unsetenv("RAFTKV_ADMIN_PASSWORD");
+  ::unsetenv("PLATEN_ADMIN_PASSWORD");
   EXPECT_FALSE(AuthOptions::from_env().enabled);
 
-  ::setenv("RAFTKV_ADMIN_PASSWORD", "", 1);
+  ::setenv("PLATEN_ADMIN_PASSWORD", "", 1);
   EXPECT_FALSE(AuthOptions::from_env().enabled);
 
-  ::setenv("RAFTKV_ADMIN_PASSWORD", "s3cr3t-admin-pw", 1);
+  ::setenv("PLATEN_ADMIN_PASSWORD", "s3cr3t-admin-pw", 1);
   const AuthOptions options = AuthOptions::from_env();
   EXPECT_TRUE(options.enabled);
   EXPECT_EQ(options.admin_password, "s3cr3t-admin-pw");
 
-  ::unsetenv("RAFTKV_ADMIN_PASSWORD");
+  ::unsetenv("PLATEN_ADMIN_PASSWORD");
 }
 
 // --- Bootstrap admin ------------------------------------------------------

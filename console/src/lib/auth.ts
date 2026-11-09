@@ -12,7 +12,7 @@
 // sessionStorage rather than localStorage: it dies with the tab, so a shared
 // machine does not keep an admin credential around after the operator leaves.
 
-const STORAGE_KEY = 'raftkv.console.credential';
+const STORAGE_KEY = 'platen.console.credential';
 
 /** The stored `user:password` base64, or null. */
 export function loadCredential(): string | null {

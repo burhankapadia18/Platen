@@ -58,7 +58,7 @@ func NewCA(t *testing.T) *CA {
 
 	tmpl := &x509.Certificate{
 		SerialNumber:          big.NewInt(1),
-		Subject:               pkix.Name{CommonName: "raftkv-test-ca"},
+		Subject:               pkix.Name{CommonName: "platen-test-ca"},
 		NotBefore:             time.Now().Add(-time.Hour),
 		NotAfter:              time.Now().Add(validity),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,

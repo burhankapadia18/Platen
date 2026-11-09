@@ -24,7 +24,7 @@ you opt in::
     pytest tests/e2e -m requires_docker -v
 
 Everything here *skips* rather than fails when the environment cannot support
-it: no docker CLI, no daemon, no compose project, or ``RAFTKV_NODES`` pointed at
+it: no docker CLI, no daemon, no compose project, or ``PLATEN_NODES`` pointed at
 something other than the local compose cluster. A skip means "not verified
 here", never "verified".
 
@@ -107,22 +107,22 @@ def _env(name: str, default, cast=float):
 #: derives the project name from its parent directory exactly as
 #: `docker compose up -d` in the repo root does.
 COMPOSE_FILE = Path(
-    os.environ.get("RAFTKV_COMPOSE_FILE", "").strip()
+    os.environ.get("PLATEN_COMPOSE_FILE", "").strip()
     or REPO_ROOT / "docker-compose.yml"
 )
 
 #: Budget for one docker CLI invocation. `kill` and `start` are fast; `inspect`
 #: and `ps` are faster. Generous because a loaded CI runner is not fast.
-DOCKER_TIMEOUT = _env("RAFTKV_DOCKER_TIMEOUT", 60.0)
+DOCKER_TIMEOUT = _env("PLATEN_DOCKER_TIMEOUT", 60.0)
 
 #: Deadline for a restarted node to answer HTTP again: container start, the C++
 #: process, and store recovery (which replays kv.wal).
-RESTART_TIMEOUT = _env("RAFTKV_RESTART_TIMEOUT", 90.0)
+RESTART_TIMEOUT = _env("PLATEN_RESTART_TIMEOUT", 90.0)
 
 #: How many distinct keys to write before the kill. Large enough that a partial
 #: loss is visible and that the on-disk check is not a single lucky byte range;
 #: small enough that the writes are a couple of seconds of raft round trips.
-CRASH_KEY_COUNT = _env("RAFTKV_CRASH_KEYS", 25, cast=int)
+CRASH_KEY_COUNT = _env("PLATEN_CRASH_KEYS", 25, cast=int)
 
 #: Container port the HTTP API listens on (docker-compose.yml publishes it as
 #: 8080/8081/8082 on the host). Used to map a node URL back to a service name.
@@ -279,7 +279,7 @@ def compose() -> Compose:
 
     if not COMPOSE_FILE.is_file():
         pytest.skip(
-            f"no compose file at {COMPOSE_FILE}; set RAFTKV_COMPOSE_FILE to the "
+            f"no compose file at {COMPOSE_FILE}; set PLATEN_COMPOSE_FILE to the "
             "one whose project is running"
         )
 
@@ -322,7 +322,7 @@ def victim(compose: Compose, cluster) -> Victim:
     ]
     if remote:
         pytest.skip(
-            f"RAFTKV_NODES points at non-local nodes ({', '.join(remote)}); this "
+            f"PLATEN_NODES points at non-local nodes ({', '.join(remote)}); this "
             "test kills a container of the local docker compose project, which "
             "is only meaningful when the nodes under test are that project"
         )

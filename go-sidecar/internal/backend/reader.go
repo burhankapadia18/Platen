@@ -55,4 +55,4 @@ func (r *StoreReader) Probe(ctx context.Context) error {
 
 // probeKey is namespaced so it cannot collide with real data even if something
 // ever did write it.
-const probeKey = "__raftkv_readiness_probe__"
+const probeKey = "__platen_readiness_probe__"

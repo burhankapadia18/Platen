@@ -116,10 +116,10 @@ int main(int argc, char *argv[]) {
     // holds the concrete PersistentKVStore — nothing was added to IKVStore for
     // this.
     metrics::Registry::global().gauge_fn(
-        "raftkv_store_keys", "Keys currently held in the local store.",
+        "platen_store_keys", "Keys currently held in the local store.",
         [&store]() { return static_cast<double>(store.key_count()); });
     metrics::Registry::global().gauge_fn(
-        "raftkv_wal_size_bytes",
+        "platen_wal_size_bytes",
         "Current size of the write-ahead log in bytes.",
         [&store]() { return static_cast<double>(store.wal_size_bytes()); });
 

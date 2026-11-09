@@ -27,7 +27,7 @@ env:
   # ghcr.io requires a lowercase path. github.repository is already lowercase for
   # this repo, but hard-coding the lowercased form avoids a class of failure that
   # only appears for owners with capitals in their name.
-  IMAGE: ghcr.io/burhankapadia18/raftkv
+  IMAGE: ghcr.io/burhankapadia18/platen
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ jobs:
 
       - name: End-to-end
         run: |
-          docker build -t raftkv:latest .
+          docker build -t platen:latest .
           # EXPORT as well as writing to GITHUB_ENV: GITHUB_ENV only affects LATER
           # steps, so a token written here and used by a `docker compose up` in the
           # same step would never reach it — compose would silently fall back to the
@@ -94,8 +94,8 @@ jobs:
           # Phase 6 secure-cluster step.
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
-          echo "RAFTKV_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
-          export RAFTKV_MGMT_TOKEN="$token"
+          echo "PLATEN_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
+          export PLATEN_MGMT_TOKEN="$token"
           docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
           deadline=$(( $(date +%s) + 120 ))
           while [ "$(date +%s)" -lt "$deadline" ]; do
@@ -202,7 +202,7 @@ jobs:
       - name: Resolve the published image
         run: |
           ref="${{ github.event.inputs.tag || github.ref_name }}"
-          echo "RAFTKV_IMAGE=${IMAGE}:${ref#v}" >> "$GITHUB_ENV"
+          echo "PLATEN_IMAGE=${IMAGE}:${ref#v}" >> "$GITHUB_ENV"
 
       - name: Start cluster and run e2e
         run: |
@@ -213,9 +213,9 @@ jobs:
           # Phase 6 secure-cluster step.
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
-          echo "RAFTKV_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
-          export RAFTKV_MGMT_TOKEN="$token"
-          # RAFTKV_IMAGE points compose at what was just PUSHED, so nothing here is
+          echo "PLATEN_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
+          export PLATEN_MGMT_TOKEN="$token"
+          # PLATEN_IMAGE points compose at what was just PUSHED, so nothing here is
           # built locally. That is the whole point of this job: the tree passing is
           # not evidence that the artifact works.
           docker compose pull

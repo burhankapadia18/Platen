@@ -1,6 +1,6 @@
 # kvbench
 
-Throughput and latency for a running RaftKV cluster (R7.5).
+Throughput and latency for a running Platen cluster (R7.5).
 
 ```bash
 docker compose up -d

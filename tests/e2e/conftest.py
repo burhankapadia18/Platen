@@ -1,21 +1,21 @@
-"""Shared fixtures and helpers for the RaftKV end-to-end suite.
+"""Shared fixtures and helpers for the Platen end-to-end suite.
 
 The suite runs against an **already-running** cluster. It never starts, stops
 or builds anything with docker: the compose lifecycle belongs to the CI job and
 to the ``cluster-smoke-test`` skill, not to the tests.
 
 Environment variables:
-    RAFTKV_NODES                 Comma-separated node base URLs. Default
+    PLATEN_NODES                 Comma-separated node base URLs. Default
                                  ``http://localhost:8080,http://localhost:8081,http://localhost:8082``
                                  (the host port mapping in docker-compose.yml).
-    RAFTKV_HTTP_TIMEOUT          Per-request socket timeout, seconds (default 5.0).
-    RAFTKV_REPLICATION_TIMEOUT   Deadline for a committed write to become
+    PLATEN_HTTP_TIMEOUT          Per-request socket timeout, seconds (default 5.0).
+    PLATEN_REPLICATION_TIMEOUT   Deadline for a committed write to become
                                  readable on a node, seconds (default 5.0 --
                                  the R0.1 deadline).
-    RAFTKV_LEADER_TIMEOUT        Deadline for leader discovery, seconds
+    PLATEN_LEADER_TIMEOUT        Deadline for leader discovery, seconds
                                  (default 30.0) -- tolerates an election in
                                  progress on a freshly started cluster.
-    RAFTKV_POLL_INTERVAL         Poll interval, seconds (default 0.1).
+    PLATEN_POLL_INTERVAL         Poll interval, seconds (default 0.1).
 """
 
 from __future__ import annotations
@@ -65,37 +65,37 @@ def _env_float(name: str, default: float) -> float:
         raise ValueError(f"{name} must be a number, got {raw!r}") from exc
 
 
-HTTP_TIMEOUT = _env_float("RAFTKV_HTTP_TIMEOUT", 5.0)
-REPLICATION_TIMEOUT = _env_float("RAFTKV_REPLICATION_TIMEOUT", 5.0)
-LEADER_TIMEOUT = _env_float("RAFTKV_LEADER_TIMEOUT", 30.0)
-POLL_INTERVAL = _env_float("RAFTKV_POLL_INTERVAL", 0.1)
+HTTP_TIMEOUT = _env_float("PLATEN_HTTP_TIMEOUT", 5.0)
+REPLICATION_TIMEOUT = _env_float("PLATEN_REPLICATION_TIMEOUT", 5.0)
+LEADER_TIMEOUT = _env_float("PLATEN_LEADER_TIMEOUT", 30.0)
+POLL_INTERVAL = _env_float("PLATEN_POLL_INTERVAL", 0.1)
 
 
 def node_urls() -> list[str]:
-    """Base URLs of the cluster nodes, from ``RAFTKV_NODES`` or the default."""
-    raw = os.environ.get("RAFTKV_NODES", "").strip() or DEFAULT_NODES
+    """Base URLs of the cluster nodes, from ``PLATEN_NODES`` or the default."""
+    raw = os.environ.get("PLATEN_NODES", "").strip() or DEFAULT_NODES
     return [url.strip().rstrip("/") for url in raw.split(",") if url.strip()]
 
 
 def mgmt_urls_for(nodes: list[str]) -> list[str]:
     """Management API base URLs, one per entry in ``nodes``.
 
-    ``RAFTKV_MGMT`` overrides them wholesale (same order as ``RAFTKV_NODES``).
+    ``PLATEN_MGMT`` overrides them wholesale (same order as ``PLATEN_NODES``).
     Otherwise they are derived from the client URLs by mapping the published
     client port onto the published management port, which docker-compose.yml
     lays out positionally:
 
         8080 -> 6000     8081 -> 6001     8082 -> 6002
 
-    Deriving rather than hardcoding keeps a custom ``RAFTKV_NODES`` working for
+    Deriving rather than hardcoding keeps a custom ``PLATEN_NODES`` working for
     the common case, and the explicit override covers everything else.
     """
-    raw = os.environ.get("RAFTKV_MGMT", "").strip()
+    raw = os.environ.get("PLATEN_MGMT", "").strip()
     if raw:
         urls = [u.strip().rstrip("/") for u in raw.split(",") if u.strip()]
         if len(urls) != len(nodes):
             raise ValueError(
-                f"RAFTKV_MGMT has {len(urls)} entries but there are "
+                f"PLATEN_MGMT has {len(urls)} entries but there are "
                 f"{len(nodes)} nodes; they must correspond one to one"
             )
         return urls
@@ -108,7 +108,7 @@ def mgmt_urls_for(nodes: list[str]) -> list[str]:
             raise ValueError(
                 f"cannot derive a management URL for {url!r}: expected a "
                 "published client port in 8080-8089 (docker-compose.yml maps "
-                "8080/8081/8082 to 6000/6001/6002). Set RAFTKV_MGMT explicitly."
+                "8080/8081/8082 to 6000/6001/6002). Set PLATEN_MGMT explicitly."
             )
         host = parsed.hostname or "localhost"
         derived.append(f"{parsed.scheme}://{host}:{6000 + (port - 8080)}")
@@ -484,8 +484,8 @@ def nodes() -> list[str]:
     urls = node_urls()
     if not urls:
         pytest.fail(
-            "RAFTKV_NODES is set but empty; expected a comma-separated list of "
-            "base URLs, e.g. RAFTKV_NODES=http://localhost:8080,http://localhost:8081",
+            "PLATEN_NODES is set but empty; expected a comma-separated list of "
+            "base URLs, e.g. PLATEN_NODES=http://localhost:8080,http://localhost:8081",
             pytrace=False,
         )
     return urls
@@ -525,7 +525,7 @@ def leader(nodes: list[str]) -> str:
     publishes the management port for exactly this reason (6000/6001/6002,
     positionally matching the 8080/8081/8082 client ports).
 
-    Set ``RAFTKV_MGMT`` to override the management URLs; it defaults to deriving
+    Set ``PLATEN_MGMT`` to override the management URLs; it defaults to deriving
     them from the client ports, so the common case needs no configuration.
     """
     mgmt_urls = mgmt_urls_for(nodes)
@@ -553,12 +553,12 @@ def leader(nodes: list[str]) -> str:
         detail = "\n  ".join(last_round) or "  (no nodes probed)"
         pytest.fail(
             "No node reported itself leader within "
-            f"{LEADER_TIMEOUT:g}s -- the RaftKV cluster does not look ready.\n"
+            f"{LEADER_TIMEOUT:g}s -- the Platen cluster does not look ready.\n"
             f"Management URLs probed: {', '.join(mgmt_urls)}\n"
             f"Last probe round:\n  {detail}\n"
             "These tests do not manage docker. Start the cluster first:\n"
-            "  docker build -t raftkv:latest . && docker compose up -d\n"
-            "Point the suite elsewhere with RAFTKV_NODES / RAFTKV_MGMT.",
+            "  docker build -t platen:latest . && docker compose up -d\n"
+            "Point the suite elsewhere with PLATEN_NODES / PLATEN_MGMT.",
             pytrace=False,
         )
     return found

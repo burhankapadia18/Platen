@@ -73,10 +73,10 @@ struct AuthOptions {
    */
   std::string admin_password;
 
-  /** @brief Read RAFTKV_ADMIN_PASSWORD; empty means auth stays off. */
+  /** @brief Read PLATEN_ADMIN_PASSWORD; empty means auth stays off. */
   [[nodiscard]] static AuthOptions from_env() {
     AuthOptions options;
-    const char *value = std::getenv("RAFTKV_ADMIN_PASSWORD");
+    const char *value = std::getenv("PLATEN_ADMIN_PASSWORD");
     if (value != nullptr && *value != '\0') {
       options.admin_password = value;
       options.enabled = true;

@@ -363,4 +363,4 @@ def test_auth_users_is_closed_without_a_password(nodes: list[str]):
             "this cluster has client auth enabled; the auth-ON behaviour of "
             "/auth/users is covered by test_auth.py"
         )
-    assert "RAFTKV_ADMIN_PASSWORD" in response.text
+    assert "PLATEN_ADMIN_PASSWORD" in response.text

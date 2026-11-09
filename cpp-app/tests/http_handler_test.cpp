@@ -751,10 +751,10 @@ TEST_F(AuthenticatedHandlerTest, MissingCredentialIs401WithAChallenge) {
   // without telling it how.
   ASSERT_EQ(response.extra_headers.size(), 1u);
   EXPECT_EQ(response.extra_headers[0].first, "WWW-Authenticate");
-  EXPECT_EQ(response.extra_headers[0].second, "Basic realm=\"raftkv\"");
+  EXPECT_EQ(response.extra_headers[0].second, "Basic realm=\"platen\"");
   // ...and it must actually reach the wire.
   EXPECT_NE(
-      response.to_string().find("WWW-Authenticate: Basic realm=\"raftkv\""),
+      response.to_string().find("WWW-Authenticate: Basic realm=\"platen\""),
       std::string::npos);
   EXPECT_EQ(raft_.calls, 0);
 }
@@ -1002,14 +1002,14 @@ TEST_F(AdminHandlerTest, PutUserRequiresMsgpackAndAValidBody) {
 }
 
 TEST_F(AdminHandlerTest, TheBootstrapAdminCannotBeManagedThroughTheApi) {
-  // It is defined by RAFTKV_ADMIN_PASSWORD and checked before the store, so a
+  // It is defined by PLATEN_ADMIN_PASSWORD and checked before the store, so a
   // record under that name would be dead weight that looks like a live account.
   const HttpResponse put = handler_.handle(msgpack_request(
       "PUT", "/auth/users/admin",
       upsert_body("new-admin-password", {auth::kClassAdmin}, {"*"})));
 
   EXPECT_EQ(put.status_code, 400);
-  EXPECT_NE(put.body.find("RAFTKV_ADMIN_PASSWORD"), std::string::npos);
+  EXPECT_NE(put.body.find("PLATEN_ADMIN_PASSWORD"), std::string::npos);
   EXPECT_EQ(
       handler_.handle(request_for("DELETE", "/auth/users/admin")).status_code,
       400);
@@ -1472,7 +1472,7 @@ TEST_F(KVHttpHandlerTest, UsersListIsClosedWhenAuthIsDisabled) {
   const HttpResponse response =
       handler_.handle(request_for("GET", "/auth/users"));
   EXPECT_EQ(response.status_code, 403);
-  EXPECT_NE(response.body.find("RAFTKV_ADMIN_PASSWORD"), std::string::npos);
+  EXPECT_NE(response.body.find("PLATEN_ADMIN_PASSWORD"), std::string::npos);
 }
 
 // --- Console static routes -------------------------------------------------

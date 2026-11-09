@@ -1,4 +1,4 @@
-// Command kvbench measures RaftKV throughput and latency against a running
+// Command kvbench measures Platen throughput and latency against a running
 // cluster (R7.5).
 //
 //	go run ./cmd/kvbench -workload write -clients 32 -duration 30s

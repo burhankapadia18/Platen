@@ -1,4 +1,4 @@
-# RaftKV
+# Platen
 
 <p align="center">
   <strong>A lightweight distributed key-value store built on Raft consensus</strong>
@@ -17,7 +17,7 @@
 
 ## Overview
 
-**RaftKV** is a distributed key-value store that combines a high-performance C++ storage engine with the reliability of the [Raft consensus algorithm](https://raft.github.io/). The system uses a sidecar architecture where cluster coordination and replication are handled by a Go-based component using [HashiCorp Raft](https://github.com/hashicorp/raft), ensuring strong consistency with minimal coupling between components.
+**Platen** is a distributed key-value store that combines a high-performance C++ storage engine with the reliability of the [Raft consensus algorithm](https://raft.github.io/). The system uses a sidecar architecture where cluster coordination and replication are handled by a Go-based component using [HashiCorp Raft](https://github.com/hashicorp/raft), ensuring strong consistency with minimal coupling between components.
 
 ## Features
 
@@ -47,7 +47,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                          RaftKV Node                            │
+│                          Platen Node                            │
 ├─────────────────────────────────┬───────────────────────────────┤
 │         C++ Storage Engine      │       Go Raft Sidecar         │
 │                                 │                               │
@@ -95,7 +95,7 @@
 
 ```bash
 # Build the Docker image
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 
 # Start a 3-node cluster
 docker compose up -d
@@ -195,14 +195,14 @@ pytest tests/e2e -m requires_docker -v -rs
 # 5. TLS profile — needs the cluster brought up with docker-compose.secure.yml
 #    and a CA in ./certs. Skips (never fails) when that is not the case.
 ./scripts/gen-certs.sh
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 pytest tests/e2e -m requires_secure -v -rs
 
 # 6. Client auth — needs the cluster brought up with docker-compose.auth.yml and
 #    the SAME admin password exported. Skips (never fails) otherwise, so a
 #    misconfigured run says "not verified here" instead of reporting green.
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
 pytest tests/e2e -m requires_auth -v -rs
 
@@ -254,7 +254,7 @@ written. When the cluster is started with an admin password
 
 | Outcome | Status | Body |
 |---|---|---|
-| No usable credential presented | `401 Unauthorized` + `WWW-Authenticate: Basic realm="raftkv"` | `{"error":"authentication required"}` |
+| No usable credential presented | `401 Unauthorized` + `WWW-Authenticate: Basic realm="platen"` | `{"error":"authentication required"}` |
 | Credential presented and rejected | `403 Forbidden` | `{"error":"invalid credentials"}` |
 | Authenticated, but not permitted | `403 Forbidden` | `{"error":"permission denied"}` |
 | Key under the reserved `__sys:` prefix | `403 Forbidden` | `{"error":"keys under \"__sys:\" are reserved; use /auth/users/{name}"}` |
@@ -415,7 +415,7 @@ GET /auth/users
 
 Requires the `admin` class; `403` when authentication is disabled, like the rest
 of `/auth/*`. Returns `{"users":["alice","bob"]}` — **names only**, never a salt
-or a password hash. The bootstrap administrator from `RAFTKV_ADMIN_PASSWORD` is
+or a password hash. The bootstrap administrator from `PLATEN_ADMIN_PASSWORD` is
 not a record and is not listed.
 
 ### Percent-decoding
@@ -481,8 +481,8 @@ architectural change, not a tweak.
 GET /metrics
 ```
 
-Prometheus text format from the storage engine (`raftkv_apply_total`,
-`raftkv_http_requests_total`, `raftkv_store_keys`, `raftkv_wal_size_bytes`, apply
+Prometheus text format from the storage engine (`platen_apply_total`,
+`platen_http_requests_total`, `platen_store_keys`, `platen_wal_size_bytes`, apply
 and request duration histograms). The sidecar exposes its own on `:6000/metrics`,
 including raft gauges.
 
@@ -490,7 +490,7 @@ including raft gauges.
 
 Only available when the cluster was started with an admin password; without one
 this whole surface answers `403 {"error":"user management is disabled; set
-RAFTKV_ADMIN_PASSWORD to enable authentication"}`. Default-closed, deliberately:
+PLATEN_ADMIN_PASSWORD to enable authentication"}`. Default-closed, deliberately:
 an unconfigured security feature must never read as "no restriction".
 
 All three user routes require the **`admin`** class. The classes are independent,
@@ -512,7 +512,7 @@ Raft, so the cleartext password never reaches the log.
 |---|---|---|
 | Committed | `200 OK` | `{"ok":true}` |
 | Password shorter than 8 bytes, unknown class, bad name, undecodable body | `400 Bad Request` | `{"error":"<reason>"}` |
-| Name is `admin` | `400 Bad Request` | `{"error":"\"admin\" is defined by RAFTKV_ADMIN_PASSWORD and cannot be managed through this API"}` |
+| Name is `admin` | `400 Bad Request` | `{"error":"\"admin\" is defined by PLATEN_ADMIN_PASSWORD and cannot be managed through this API"}` |
 | `Content-Type` is not msgpack | `415 Unsupported Media Type` | `{"error":"unsupported media type","expected":"application/msgpack"}` |
 | Not the leader / propose failed | `503` / `502` | as for any other write |
 
@@ -592,7 +592,7 @@ bearer token**; the rest are read-only and unauthenticated, because container
 health probes and Prometheus cannot present a credential.
 
 ```bash
-curl -H "Authorization: Bearer $RAFTKV_MGMT_TOKEN" \
+curl -H "Authorization: Bearer $PLATEN_MGMT_TOKEN" \
   "http://localhost:6000/join?peerID=node4&peerAddress=node4:8088"
 ```
 
@@ -603,7 +603,7 @@ curl -H "Authorization: Bearer $RAFTKV_MGMT_TOKEN" \
 | No token configured on the node | 403 | The endpoint is **disabled**, not open — see below |
 | Valid token, missing parameters | 400 | Authenticated; the request itself is malformed |
 
-The "no token configured" case is the important one: with `RAFTKV_MGMT_TOKEN`
+The "no token configured" case is the important one: with `PLATEN_MGMT_TOKEN`
 unset, `/join` and `/remove` are closed rather than open. A cluster that forgets
 to set it cannot grow — which is a much better failure than one that anybody can
 join. Either node of a join may receive the request: a follower relays it to the
@@ -618,8 +618,8 @@ leader, authenticating as itself.
 | `NODE_ID` | Unique identifier for this node | `node1` |
 | `BOOTSTRAP` | Set to `true` for the initial leader | `false` |
 | `JOIN_ADDR` | Leader's management address for joining | - |
-| `RAFTKV_MGMT_TOKEN` | Cluster-admin bearer token for `/join` and `/remove`. Unset **disables** those endpoints | - |
-| `RAFTKV_ADMIN_PASSWORD` | Bootstrap admin's password. Setting it **enables client authentication**; unset means the client API is unauthenticated | - |
+| `PLATEN_MGMT_TOKEN` | Cluster-admin bearer token for `/join` and `/remove`. Unset **disables** those endpoints | - |
+| `PLATEN_ADMIN_PASSWORD` | Bootstrap admin's password. Setting it **enables client authentication**; unset means the client API is unauthenticated | - |
 | `RAFT_TLS_CERT` / `RAFT_TLS_KEY` / `RAFT_TLS_CA` | Mutual TLS for the Raft peer transport. Unset means plaintext | - |
 | `MGMT_TLS_CERT` / `MGMT_TLS_KEY` / `MGMT_TLS_CA` | TLS for the management API. Unset means HTTP | - |
 | `SNAPSHOT_INTERVAL` / `SNAPSHOT_THRESHOLD` / `TRAILING_LOGS` | Raft snapshot tunables. Unset uses HashiCorp Raft's defaults | - |
@@ -655,7 +655,7 @@ it is exercised by its own CI job.
 
 ```bash
 ./scripts/gen-certs.sh                                # dev CA + node certs -> ./certs
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 
 curl --cacert certs/ca.pem https://localhost:6000/status
@@ -684,19 +684,19 @@ password **is** the switch — there is no separate enable flag that could disag
 with it.
 
 ```bash
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
 
 # The bootstrap admin comes from that variable. It is not stored in the data it
 # administers, so there is no chicken-and-egg problem creating the first user.
-curl -u "admin:$RAFTKV_ADMIN_PASSWORD" http://localhost:8080/auth/whoami
+curl -u "admin:$PLATEN_ADMIN_PASSWORD" http://localhost:8080/auth/whoami
 # {"name":"admin","classes":["read","write","admin"],"patterns":["*"]}
 
 # Create a scoped user: may read and write, but only keys matching app:*
 python3 -c 'import msgpack,sys; sys.stdout.buffer.write(msgpack.packb({
     "password":"alice-password","enabled":True,
     "classes":["read","write"],"patterns":["app:*"]}))' \
-  | curl -u "admin:$RAFTKV_ADMIN_PASSWORD" -X PUT \
+  | curl -u "admin:$PLATEN_ADMIN_PASSWORD" -X PUT \
       -H 'Content-Type: application/msgpack' --data-binary @- \
       http://localhost:8080/auth/users/alice
 
@@ -905,7 +905,7 @@ truncated rather than that a snapshot file merely appeared.
 ## Project Structure
 
 ```
-RaftKV/
+Platen/
 ├── cpp-app/                 # C++ Storage Engine (header-only; main.cpp bootstraps)
 │   ├── src/
 │   │   ├── main.cpp         # Wiring only

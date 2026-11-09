@@ -1,4 +1,4 @@
-# RaftKV end-to-end suite
+# Platen end-to-end suite
 
 Asserting replacement for `test_client.py`. Five families of test:
 
@@ -38,7 +38,7 @@ These tests never start, stop, or build anything with docker. The compose
 lifecycle belongs to the CI `e2e` job and to the `cluster-smoke-test` skill.
 
 ```bash
-docker build -t raftkv:latest .
+docker build -t platen:latest .
 docker compose up -d
 ```
 
@@ -87,7 +87,7 @@ cluster brought up with `docker-compose.secure.yml` plus a CA in `./certs`:
 
 ```bash
 ./scripts/gen-certs.sh
-export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
 docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 pytest tests/e2e -m requires_secure -v -rs
 ```
@@ -111,7 +111,7 @@ is what keeps the rule above true.
 
 The rule exists because it makes the suite portable: knowing nothing about *how*
 the nodes are run, it works against a local compose cluster, a remote host, or a
-k8s namespace, driven only by `RAFTKV_NODES`. Two acceptance criteria cannot be
+k8s namespace, driven only by `PLATEN_NODES`. Two acceptance criteria cannot be
 expressed that way. Phase 2's ("`kill -9` at any instant loses no acknowledged
 write") has to send a real SIGKILL to a real container, and specifically SIGKILL:
 `docker compose stop` sends SIGTERM, which is a graceful shutdown and would prove
@@ -124,7 +124,7 @@ one in `addopts`, which is what makes the opt-in work.
 
 Both modules **skip** — never fail — when they cannot do their job: no `docker`
 CLI, no `docker compose` plugin, no reachable daemon, no containers in the
-compose project, or `RAFTKV_NODES` pointing at anything other than localhost
+compose project, or `PLATEN_NODES` pointing at anything other than localhost
 (killing a local container proves nothing about a remote cluster). A skip means
 "not verified here".
 
@@ -213,36 +213,36 @@ All optional; every value has a working default for `docker-compose.yml`.
 
 | Env var | Default | Meaning |
 |---|---|---|
-| `RAFTKV_NODES` | `http://localhost:8080,http://localhost:8081,http://localhost:8082` | Comma-separated node base URLs |
-| `RAFTKV_HTTP_TIMEOUT` | `5.0` | Per-request socket timeout, seconds |
-| `RAFTKV_REPLICATION_TIMEOUT` | `5.0` | Deadline for a write to become readable on a node |
-| `RAFTKV_LEADER_TIMEOUT` | `30.0` | Deadline for leader discovery (tolerates an election in progress) |
-| `RAFTKV_POLL_INTERVAL` | `0.1` | Poll interval, seconds |
+| `PLATEN_NODES` | `http://localhost:8080,http://localhost:8081,http://localhost:8082` | Comma-separated node base URLs |
+| `PLATEN_HTTP_TIMEOUT` | `5.0` | Per-request socket timeout, seconds |
+| `PLATEN_REPLICATION_TIMEOUT` | `5.0` | Deadline for a write to become readable on a node |
+| `PLATEN_LEADER_TIMEOUT` | `30.0` | Deadline for leader discovery (tolerates an election in progress) |
+| `PLATEN_POLL_INTERVAL` | `0.1` | Poll interval, seconds |
 
 `test_crash.py` only (all ignored by the default run):
 
 | Env var | Default | Meaning |
 |---|---|---|
-| `RAFTKV_COMPOSE_FILE` | `<repo>/docker-compose.yml` | Compose file identifying the project whose container gets killed |
-| `RAFTKV_CRASH_KEYS` | `25` | How many keys to write before the kill |
-| `RAFTKV_RESTART_TIMEOUT` | `90.0` | Deadline for the restarted node to answer a read again |
-| `RAFTKV_DOCKER_TIMEOUT` | `60.0` | Budget for one `docker` CLI invocation |
+| `PLATEN_COMPOSE_FILE` | `<repo>/docker-compose.yml` | Compose file identifying the project whose container gets killed |
+| `PLATEN_CRASH_KEYS` | `25` | How many keys to write before the kill |
+| `PLATEN_RESTART_TIMEOUT` | `90.0` | Deadline for the restarted node to answer a read again |
+| `PLATEN_DOCKER_TIMEOUT` | `60.0` | Budget for one `docker` CLI invocation |
 
 `test_snapshot.py` only (also ignored by the default run):
 
 | Env var | Default | Meaning |
 |---|---|---|
-| `RAFTKV_COMPOSE_FILES` | `<repo>/docker-compose.yml,<repo>/docker-compose.test.yml` | Comma-separated compose files, in `-f` order. Must match what the cluster was started with, or a restarted service loses the override |
-| `RAFTKV_SNAPSHOT_KEYS` | `60` | Keys written to push the cluster past the snapshot threshold |
-| `RAFTKV_COMPACTION_TIMEOUT` | `120.0` | Deadline for every node to snapshot *and* truncate |
-| `RAFTKV_CATCHUP_TIMEOUT` | `180.0` | Deadline for a wiped or restarted node to serve every key again |
-| `RAFTKV_DOCKER_POLL_INTERVAL` | `1.0` | Poll interval for `/status` and log probes (each costs a `docker compose exec`) |
-| `RAFTKV_MAX_SNAPSHOT_THRESHOLD` | `512` | Above this, the cluster counts as "not configured for these tests" and they skip |
-| `RAFTKV_MAX_TRAILING_LOGS` | `512` | Same, for `TrailingLogs` |
-| `RAFTKV_RESTART_TAIL_SLACK` | `8` | Extra applies tolerated above the expected tail on restart |
+| `PLATEN_COMPOSE_FILES` | `<repo>/docker-compose.yml,<repo>/docker-compose.test.yml` | Comma-separated compose files, in `-f` order. Must match what the cluster was started with, or a restarted service loses the override |
+| `PLATEN_SNAPSHOT_KEYS` | `60` | Keys written to push the cluster past the snapshot threshold |
+| `PLATEN_COMPACTION_TIMEOUT` | `120.0` | Deadline for every node to snapshot *and* truncate |
+| `PLATEN_CATCHUP_TIMEOUT` | `180.0` | Deadline for a wiped or restarted node to serve every key again |
+| `PLATEN_DOCKER_POLL_INTERVAL` | `1.0` | Poll interval for `/status` and log probes (each costs a `docker compose exec`) |
+| `PLATEN_MAX_SNAPSHOT_THRESHOLD` | `512` | Above this, the cluster counts as "not configured for these tests" and they skip |
+| `PLATEN_MAX_TRAILING_LOGS` | `512` | Same, for `TrailingLogs` |
+| `PLATEN_RESTART_TAIL_SLACK` | `8` | Extra applies tolerated above the expected tail on restart |
 
 ```bash
-RAFTKV_NODES=http://node1:8080,http://node2:8080,http://node3:8080 pytest tests/e2e -v
+PLATEN_NODES=http://node1:8080,http://node2:8080,http://node3:8080 pytest tests/e2e -v
 ```
 
 ## The contract under test
@@ -286,7 +286,7 @@ literal value.
   `200 {"ok":true}` and a follower answers `503 {"error":"not leader",...}`.
   The probe keys off the *success* shape rather than "not a 503", so a node
   whose sidecar is down (502) is never mistaken for a leader. The result is
-  cached for the session and the probe is retried until `RAFTKV_LEADER_TIMEOUT`.
+  cached for the session and the probe is retried until `PLATEN_LEADER_TIMEOUT`.
 - **Everything hangs off `ClusterClient`.** `test_cluster.py` imports only
   `contracts` and pytest fixtures — never `conftest` by name, which would be
   fragile once a second `conftest.py` exists in the tree. Request helpers,
@@ -339,7 +339,7 @@ request in the default suite is a 401, so the auth-on and auth-off profiles
 its own bring-up and its own CI job, exactly as the TLS profile does.
 
 ```bash
-export RAFTKV_ADMIN_PASSWORD="$(openssl rand -hex 16)"
+export PLATEN_ADMIN_PASSWORD="$(openssl rand -hex 16)"
 docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
 pytest tests/e2e -m requires_auth -v -rs
 ```

@@ -150,7 +150,7 @@ class Cluster:
         return last
 
     def store_keys(self, node: Node) -> int | None:
-        """``raftkv_store_keys`` from a node's own metrics endpoint."""
+        """``platen_store_keys`` from a node's own metrics endpoint."""
         try:
             response = self._session.get(f"{node.http}/metrics", timeout=HTTP_TIMEOUT)
         except requests.exceptions.RequestException:
@@ -158,7 +158,7 @@ class Cluster:
         if response.status_code != 200:
             return None
         for line in response.text.splitlines():
-            if line.startswith("raftkv_store_keys"):
+            if line.startswith("platen_store_keys"):
                 _, _, value = line.partition(" ")
                 return int(float(value))
         return None

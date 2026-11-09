@@ -29,7 +29,7 @@ var (
 	// anything slower is already a failure, so finer resolution up there buys
 	// nothing.
 	ApplyLatency = promauto.NewHistogram(prometheus.HistogramOpts{
-		Name: "raftkv_fsm_apply_duration_seconds",
+		Name: "platen_fsm_apply_duration_seconds",
 		Help: "Time to apply one committed Raft log entry to the C++ state machine.",
 		Buckets: []float64{
 			0.0001, 0.00025, 0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025,
@@ -42,20 +42,20 @@ var (
 	// consistent, a transport failure can diverge this replica. Alerting on the
 	// two together would page someone every time a client sends a bad command.
 	ApplyErrors = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "raftkv_fsm_apply_errors_total",
+		Name: "platen_fsm_apply_errors_total",
 		Help: "Failed applies, by kind: rejected (deterministic) or transport (may diverge).",
 	}, []string{"kind"})
 
 	// ProposeTotal counts proposals by outcome, which is what makes "is this node
 	// serving writes or just forwarding them" answerable.
 	ProposeTotal = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "raftkv_propose_total",
+		Name: "platen_propose_total",
 		Help: "Proposals handled, by outcome (ok, not_leader, forwarded, error).",
 	}, []string{"outcome"})
 
 	// ReadTotal does the same for linearizable reads.
 	ReadTotal = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "raftkv_read_total",
+		Name: "platen_read_total",
 		Help: "Linearizable reads handled, by outcome (ok, not_leader, forwarded, error).",
 	}, []string{"outcome"})
 )
@@ -96,7 +96,7 @@ type raftCollector struct {
 // NewRaftCollector returns a collector reading from source.
 func NewRaftCollector(source RaftStatsSource) prometheus.Collector {
 	g := func(name, help string) *prometheus.Desc {
-		return prometheus.NewDesc("raftkv_raft_"+name, help, nil, nil)
+		return prometheus.NewDesc("platen_raft_"+name, help, nil, nil)
 	}
 	return &raftCollector{
 		source:            source,

@@ -44,7 +44,7 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) bool {
 		http.Error(w,
 			"cluster-admin token is not configured on this node, so mutating "+
 				"management endpoints are disabled; set -mgmt-token or "+
-				"RAFTKV_MGMT_TOKEN",
+				"PLATEN_MGMT_TOKEN",
 			http.StatusForbidden)
 		return true
 	}
@@ -54,7 +54,7 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) bool {
 		// 401, not 403: the client did not present a credential at all, and the
 		// distinction is what tells an operator "you forgot the header" apart from
 		// "your token is wrong".
-		w.Header().Set("WWW-Authenticate", `Bearer realm="raftkv-management"`)
+		w.Header().Set("WWW-Authenticate", `Bearer realm="platen-management"`)
 		http.Error(w, "missing bearer token", http.StatusUnauthorized)
 		return true
 	}

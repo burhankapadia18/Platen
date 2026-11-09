@@ -136,7 +136,7 @@ ERROR_USER_NOT_FOUND = "user not found"
 #: The challenge on every 401. Without it a client is told to authenticate and
 #: not told how (RFC 9110).
 WWW_AUTHENTICATE_HEADER = "WWW-Authenticate"
-WWW_AUTHENTICATE_BASIC = 'Basic realm="raftkv"'
+WWW_AUTHENTICATE_BASIC = 'Basic realm="platen"'
 
 #: The reserved key space. Refused on every DATA route — reads included, because
 #: a local read of a user record would return its salt and password hash — and
@@ -145,7 +145,7 @@ WWW_AUTHENTICATE_BASIC = 'Basic realm="raftkv"'
 SYS_KEY_PREFIX = "__sys:"
 USER_KEY_PREFIX = "__sys:user:"
 
-#: The bootstrap admin, defined by RAFTKV_ADMIN_PASSWORD rather than by a record,
+#: The bootstrap admin, defined by PLATEN_ADMIN_PASSWORD rather than by a record,
 #: and checked before the store — so it cannot be created, changed or deleted
 #: through the API, and a planted record under this name is shadowed.
 BOOTSTRAP_ADMIN = "admin"

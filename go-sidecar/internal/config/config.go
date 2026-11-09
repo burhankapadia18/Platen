@@ -126,7 +126,7 @@ func init() {
 	flags.logLevel = flag.String("log-level", DefaultLogLevel, "Log threshold: debug|info|warn|error")
 	// Default comes from the environment so the token never has to appear in a
 	// process listing, where any local user could read it off `ps`.
-	flags.mgmtToken = flag.String("mgmt-token", os.Getenv("RAFTKV_MGMT_TOKEN"), "Cluster-admin bearer token for /join and /remove (prefer RAFTKV_MGMT_TOKEN)")
+	flags.mgmtToken = flag.String("mgmt-token", os.Getenv("PLATEN_MGMT_TOKEN"), "Cluster-admin bearer token for /join and /remove (prefer PLATEN_MGMT_TOKEN)")
 
 	// R6.4 / R6.3. All six default to empty, so a node started without them
 	// behaves exactly as it did before Phase 6 — the zero-config demo keeps

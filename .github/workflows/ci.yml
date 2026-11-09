@@ -353,7 +353,7 @@ jobs:
           pip install -r tests/e2e/requirements.txt
 
       - name: Build image
-        run: docker build -t raftkv:latest .
+        run: docker build -t platen:latest .
 
       # `docker compose` (the CLI plugin) is preinstalled on GitHub runners;
       # the standalone `docker-compose` binary is not guaranteed to be. The
@@ -486,14 +486,14 @@ jobs:
           pip install -r tests/e2e/requirements.txt
 
       - name: Build image
-        run: docker build -t raftkv:latest .
+        run: docker build -t platen:latest .
 
       - name: Start cluster with client auth
         run: |
           # Generated ONCE, then shared with later steps — the same trap
           # e2e-secure documents: calling `openssl rand` twice would start the
           # cluster with one password and hand pytest another, and every test
-          # would then SKIP with "RAFTKV_ADMIN_PASSWORD does not match", which
+          # would then SKIP with "PLATEN_ADMIN_PASSWORD does not match", which
           # reads as a pass.
           #
           # A generated password rather than the compose fallback: a security job
@@ -501,8 +501,8 @@ jobs:
           # credential works.
           password="$(openssl rand -hex 16)"
           echo "::add-mask::$password"
-          echo "RAFTKV_ADMIN_PASSWORD=$password" >> "$GITHUB_ENV"
-          export RAFTKV_ADMIN_PASSWORD="$password"
+          echo "PLATEN_ADMIN_PASSWORD=$password" >> "$GITHUB_ENV"
+          export PLATEN_ADMIN_PASSWORD="$password"
           docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
 
       # Readiness is probed on /metrics, NOT on a data route. With auth on, an
@@ -672,7 +672,7 @@ jobs:
           pip install -r tests/e2e/requirements.txt
 
       - name: Build image
-        run: docker build -t raftkv:latest .
+        run: docker build -t platen:latest .
 
       - name: Generate cluster certificates
         run: ./scripts/gen-certs.sh
@@ -689,8 +689,8 @@ jobs:
           token=""
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
-          echo "RAFTKV_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
-          export RAFTKV_MGMT_TOKEN="$token"
+          echo "PLATEN_MGMT_TOKEN=$token" >> "$GITHUB_ENV"
+          export PLATEN_MGMT_TOKEN="$token"
           docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
 
       # Readiness is polled over HTTPS with --cacert, not -k. `curl -k` would

@@ -37,14 +37,14 @@ from conftest import (
 MGMT_TIMEOUT = HTTP_TIMEOUT
 
 
-# The token docker-compose.yml falls back to when RAFTKV_MGMT_TOKEN is unset.
+# The token docker-compose.yml falls back to when PLATEN_MGMT_TOKEN is unset.
 # The tests read the environment first so a CI run with a generated token works;
 # this is the laptop default.
 DEV_TOKEN = "dev-only-insecure-token"
 
 
 def _token() -> str:
-    return os.environ.get("RAFTKV_MGMT_TOKEN", DEV_TOKEN)
+    return os.environ.get("PLATEN_MGMT_TOKEN", DEV_TOKEN)
 
 
 # ---------------------------------------------------------------------------

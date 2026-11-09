@@ -12,7 +12,7 @@ export function AuthBanner() {
       <strong>Unauthenticated.</strong> This node has no client authentication:
       anyone who can reach it can read and write every key. Enable ACLs with{' '}
       <code>docker-compose.auth.yml</code> and{' '}
-      <code>RAFTKV_ADMIN_PASSWORD</code>.
+      <code>PLATEN_ADMIN_PASSWORD</code>.
     </p>
   );
 }

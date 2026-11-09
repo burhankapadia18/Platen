@@ -335,7 +335,7 @@ stripped. Usernames are charset-restricted to `[A-Za-z0-9_.-]` and ≤128 bytes 
 
 The handler returns **names only** and never deserializes a `UserRecord` into the
 response, so no salt and no password hash can reach a client through it. The
-bootstrap admin from `RAFTKV_ADMIN_PASSWORD` is not a record and does not appear;
+bootstrap admin from `PLATEN_ADMIN_PASSWORD` is not a record and does not appear;
 the response documents that by including it in neither direction — consistent
 with `PUT /auth/users/admin` already being refused.
 

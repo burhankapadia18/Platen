@@ -1,4 +1,4 @@
-# RaftKV C++ Rules
+# Platen C++ Rules
 
 Project-specific rules for `cpp-app/`. These extend the general C++ guidance with what is idiomatic *in this repo*.
 

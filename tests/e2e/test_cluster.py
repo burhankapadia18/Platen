@@ -1,4 +1,4 @@
-"""End-to-end tests for a running 3-node RaftKV cluster.
+"""End-to-end tests for a running 3-node Platen cluster.
 
 Run against an already-running cluster; these tests never touch docker.
 

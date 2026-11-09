@@ -1,9 +1,9 @@
 ---
 name: cluster-smoke-test
-description: Build the RaftKV image, launch the 3-node docker compose cluster, run the asserting pytest end-to-end suite against it, and tear down. Use after any change to cpp-app, go-sidecar, proto, Dockerfile, or entrypoint.sh to confirm the system still works.
+description: Build the Platen image, launch the 3-node docker compose cluster, run the asserting pytest end-to-end suite against it, and tear down. Use after any change to cpp-app, go-sidecar, proto, Dockerfile, or entrypoint.sh to confirm the system still works.
 ---
 
-# RaftKV Cluster Smoke Test
+# Platen Cluster Smoke Test
 
 Verify a change end-to-end against a real 3-node cluster. This is the project's
 system-level verification; the unit layers (`go test -race ./...` and
@@ -17,7 +17,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
 
 1. **Build** (from repo root):
    ```bash
-   docker build -t raftkv:latest .
+   docker build -t platen:latest .
    ```
    Both the Go sidecar and the C++ app compile inside the image — a build failure here catches compile errors in either language.
 
@@ -59,7 +59,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
    failure.
 
    Point the suite at a non-default topology with
-   `RAFTKV_NODES=http://host:8080,...`; other knobs are listed in
+   `PLATEN_NODES=http://host:8080,...`; other knobs are listed in
    `tests/e2e/README.md`.
 
 5. **Run the crash-recovery test** (Phase 2) — deselected from the run above by
@@ -73,7 +73,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
 
    Run it after the suite above; it disturbs the cluster (one node is briefly
    down, then rejoins). `-rs` matters: the test **skips** rather than fails when
-   it cannot do its job — no docker CLI, no compose project, or `RAFTKV_NODES`
+   it cannot do its job — no docker CLI, no compose project, or `PLATEN_NODES`
    pointing somewhere other than localhost — and a silent skip would look like a
    pass. It always attempts the restart even when an assertion fails; if a run
    is interrupted between the kill and the restart, bring the node back with
@@ -93,7 +93,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
    compose:
    ```bash
    ./scripts/gen-certs.sh
-   export RAFTKV_MGMT_TOKEN="$(openssl rand -hex 32)"
+   export PLATEN_MGMT_TOKEN="$(openssl rand -hex 32)"
    docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
    pytest tests/e2e -m requires_secure -v -rs
    ```
@@ -106,7 +106,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
    docker compose logs --no-color node1 | grep '"component":"state_machine"'
    ```
    Successful applies are logged at **debug**, which the containers do not emit —
-   use `curl localhost:8080/metrics | grep raftkv_apply_total` instead of looking
+   use `curl localhost:8080/metrics | grep platen_apply_total` instead of looking
    for an "Applied" line. There is no longer any `[StateMachine] Applied:` text;
    Phase 5 replaced the bracketed prefixes with JSON.
 
@@ -117,7 +117,7 @@ Use `docker compose` (the CLI plugin) throughout — the standalone
 
 ## Interpreting failures
 
-- **`No node accepted a write within 30s -- the RaftKV cluster does not look ready`**
+- **`No node accepted a write within 30s -- the Platen cluster does not look ready`**
   (suite exits 1 during leader discovery) → no cluster is running, it is still
   electing, or the published ports differ from
   `localhost:8080/8081/8082`. The message lists what each node answered. Check
