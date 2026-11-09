@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-11-09
+
 ### Added
 
 **Management console** — a browser UI at `/console/`, served by the storage engine
@@ -248,5 +250,6 @@ Three assertions were found to be **incapable of failing** and were repaired:
   are now reclaimed once no in-flight write can still commit, raising coverage to
   ~300 keys per run.
 
-[Unreleased]: https://github.com/burhankapadia18/Platen/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/burhankapadia18/Platen/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/burhankapadia18/Platen/releases/tag/v2.0.0
 [1.0.0]: https://github.com/burhankapadia18/Platen/releases/tag/v1.0.0
