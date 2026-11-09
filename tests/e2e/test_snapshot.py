@@ -145,6 +145,10 @@ READ_POLL_INTERVAL = _env("PLATEN_POLL_INTERVAL", 0.1)
 #: actually going down, plus the no-op entry a leader appends per term.
 RESTART_TAIL_SLACK = _env("PLATEN_RESTART_TAIL_SLACK", 8, cast=int)
 
+#: How long a line the sidecar has already written may take to show up in
+#: `docker compose logs`. Bounds a pipeline delay, not anything raft does.
+LOG_SETTLE_TIMEOUT = _env("PLATEN_LOG_SETTLE_TIMEOUT", 10.0)
+
 
 # --------------------------------------------------------------------------
 # Fixtures
@@ -778,11 +782,42 @@ def test_r3_a_normal_restart_applies_a_snapshot_and_the_tail(
         f"{dict(list(outstanding.items())[:5])}"
     )
 
+    # Serving every key does NOT mean the restart has finished. The C++ engine
+    # rebuilds its store from kv.db + kv.wal and answers reads before
+    # entrypoint.sh has even launched the sidecar, so the keys above can be back
+    # while raft has neither loaded its snapshot nor applied the tail. Measuring
+    # at that instant is a race a slow runner loses: the restore line is not in
+    # the log yet, and an apply counter read that early is too small to trip the
+    # upper bound below -- that check would pass without measuring anything.
+    # Both measurements mean something only once the sidecar reports it has
+    # applied everything this node held before the restart.
+    def caught_up() -> Status | None:
+        status = try_status(compose_project, victim_service)
+        if status is not None and status.applied_index >= before.last_log_index:
+            return status
+        return None
+
+    settled = poll(caught_up, timeout=CATCHUP_TIMEOUT, interval=DOCKER_POLL_INTERVAL)
+    assert settled, (
+        f"{victim_service}'s sidecar did not apply up to index "
+        f"{before.last_log_index} (its last log index before the restart) within "
+        f"{CATCHUP_TIMEOUT:g}s; last /status: "
+        f"{try_status(compose_project, victim_service)}"
+    )
+
+    # The restore is logged inside raft.NewRaft, before /status can answer, so it
+    # should already be there; the short poll only absorbs docker's log pipeline.
+    def restore_logged() -> bool:
+        count = compose_project.count_markers(victim_service, GO_SNAPSHOT_RESTORED)
+        return count > restores_before
+
+    poll(restore_logged, timeout=LOG_SETTLE_TIMEOUT, interval=DOCKER_POLL_INTERVAL)
+    restores_after = compose_project.count_markers(victim_service, GO_SNAPSHOT_RESTORED)
+
     # The counter resets with the process, so what it reads now IS "entries
     # applied since the restart" — no before/after subtraction needed, and no
     # dependence on a log line that a level change can silence.
     replayed = read_apply_counter(victim_url)
-    restores_after = compose_project.count_markers(victim_service, GO_SNAPSHOT_RESTORED)
 
     assert restores_after > restores_before, (
         f"{victim_service} restarted without restoring its local snapshot: the "
